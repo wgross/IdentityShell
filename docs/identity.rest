@@ -1,0 +1,5 @@
+@server = https://localhost:5001
+
+###
+# call the discovery endpoint o the local server
+GET {{server}}/discovery
