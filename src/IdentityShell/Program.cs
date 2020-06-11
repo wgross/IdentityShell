@@ -1,18 +1,24 @@
 ﻿// Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
-
+using IdentityShell.Commands;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using Microsoft.PowerShell;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
-using System;
+using System.Management.Automation.Runspaces;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace IdentityShell
 {
     public class Program
     {
+        private readonly static CancellationTokenSource webHostCancellationTokenSource = new CancellationTokenSource();
+        private static Task webHostTask;
+
         public static int Main(string[] args)
         {
             Log.Logger = new LoggerConfiguration()
@@ -34,19 +40,28 @@ namespace IdentityShell
 
             try
             {
-                Log.Information("Starting host...");
-                CreateHostBuilder(args).Build().Run();
-                return 0;
-            }
-            catch (Exception ex)
-            {
-                Log.Fatal(ex, "Host terminated unexpectedly.");
-                return 1;
+                webHostTask = StartWebHost(args);
+
+                InitialSessionState iss = InitialSessionState.CreateDefault();
+                iss.Commands.Add(new SessionStateCmdletEntry("Get-IdentityClient", typeof(GetIdentityClientCommand), string.Empty));
+                iss.ExecutionPolicy = ExecutionPolicy.Unrestricted;
+                iss.Variables.Add(new SessionStateVariableEntry("webHostTask", webHostTask, "Task executing the webhost"));
+                ConsoleShell.Start(iss, "IdentityShell", "", args);
             }
             finally
             {
+                webHostCancellationTokenSource.Cancel();
+                webHostTask.Wait();
+                webHostTask.Dispose();
                 Log.CloseAndFlush();
             }
+            return 0;
+        }
+
+        private static Task StartWebHost(string[] args)
+        {
+            Log.Information("Starting host...");
+            return CreateHostBuilder(args).Build().RunAsync(webHostCancellationTokenSource.Token);
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>

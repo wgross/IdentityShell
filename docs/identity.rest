@@ -1,5 +1,5 @@
-@server = https://localhost:5001
+@server = http://localhost:5001
 
 ###
 # call the discovery endpoint o the local server
-GET {{server}}/discovery
+GET {{server}}/.well-known/openid-configuration
