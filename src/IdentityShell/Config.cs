@@ -8,16 +8,13 @@ namespace IdentityShell
 {
     public static class Config
     {
-        public static IEnumerable<IdentityResource> Ids =>
-            new IdentityResource[]
-            {
-                new IdentityResources.OpenId()
-            };
+        public static IEnumerable<IdentityResource> Ids => new IdentityResource[]
+        {
+            new IdentityResources.OpenId()
+        };
 
-        public static IEnumerable<ApiResource> Apis =>
-            new ApiResource[]
-            { };
+        public static IEnumerable<ApiResource> Apis => new ApiResource[] { };
 
-        public static List<Client> Clients { get; } = new List<Client>();
+        public static IEnumerable<Client> Clients => new Client[] { };
     }
 }

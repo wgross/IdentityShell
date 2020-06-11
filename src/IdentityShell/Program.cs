@@ -44,6 +44,7 @@ namespace IdentityShell
 
                 InitialSessionState iss = InitialSessionState.CreateDefault();
                 iss.Commands.Add(new SessionStateCmdletEntry("Get-IdentityClient", typeof(GetIdentityClientCommand), string.Empty));
+                iss.Commands.Add(new SessionStateCmdletEntry("Set-IdentityClient", typeof(SetIdentityClientCommand), string.Empty));
                 iss.ExecutionPolicy = ExecutionPolicy.Unrestricted;
                 iss.Variables.Add(new SessionStateVariableEntry("webHostTask", webHostTask, "Task executing the webhost"));
                 ConsoleShell.Start(iss, "IdentityShell", "", args);
