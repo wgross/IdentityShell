@@ -7,6 +7,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{BA11CD37-A7A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdentityShell", "src\IdentityShell\IdentityShell.csproj", "{69596F91-8604-47AF-AB71-B801BA25AC0D}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{537F6764-9FAE-45AF-8775-E47E15F84F64}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdentityShell.Test", "test\IdentityShell.Test\IdentityShell.Test.csproj", "{60DDC7FA-B1D9-4340-BDF2-870C4DB8172D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,8 +36,21 @@ Global
 		{69596F91-8604-47AF-AB71-B801BA25AC0D}.Release|x64.Build.0 = Release|Any CPU
 		{69596F91-8604-47AF-AB71-B801BA25AC0D}.Release|x86.ActiveCfg = Release|Any CPU
 		{69596F91-8604-47AF-AB71-B801BA25AC0D}.Release|x86.Build.0 = Release|Any CPU
+		{60DDC7FA-B1D9-4340-BDF2-870C4DB8172D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{60DDC7FA-B1D9-4340-BDF2-870C4DB8172D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{60DDC7FA-B1D9-4340-BDF2-870C4DB8172D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{60DDC7FA-B1D9-4340-BDF2-870C4DB8172D}.Debug|x64.Build.0 = Debug|Any CPU
+		{60DDC7FA-B1D9-4340-BDF2-870C4DB8172D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{60DDC7FA-B1D9-4340-BDF2-870C4DB8172D}.Debug|x86.Build.0 = Debug|Any CPU
+		{60DDC7FA-B1D9-4340-BDF2-870C4DB8172D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{60DDC7FA-B1D9-4340-BDF2-870C4DB8172D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{60DDC7FA-B1D9-4340-BDF2-870C4DB8172D}.Release|x64.ActiveCfg = Release|Any CPU
+		{60DDC7FA-B1D9-4340-BDF2-870C4DB8172D}.Release|x64.Build.0 = Release|Any CPU
+		{60DDC7FA-B1D9-4340-BDF2-870C4DB8172D}.Release|x86.ActiveCfg = Release|Any CPU
+		{60DDC7FA-B1D9-4340-BDF2-870C4DB8172D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{69596F91-8604-47AF-AB71-B801BA25AC0D} = {BA11CD37-A7A0-4F90-B2CB-E740B20DFD35}
+		{60DDC7FA-B1D9-4340-BDF2-870C4DB8172D} = {537F6764-9FAE-45AF-8775-E47E15F84F64}
 	EndGlobalSection
 EndGlobal

@@ -3,6 +3,7 @@
 
 using IdentityServer4.EntityFramework.DbContexts;
 using IdentityServer4.EntityFramework.Mappers;
+using IdentityShell.Commands;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -51,7 +52,7 @@ namespace IdentityShell
         {
             if (Environment.IsDevelopment())
             {
-                InitializeDatabase(app);
+                this.InitializeDatabase(app);
                 app.UseDeveloperExceptionPage();
             }
 
@@ -67,8 +68,10 @@ namespace IdentityShell
             //{
             //    endpoints.MapDefaultControllerRoute();
             //});
-
             AppServices = app.ApplicationServices;
+
+            // inject the scoipe factory in the cmdlet base class
+            IdentityCommandBase.ServiceProvider = app.ApplicationServices;
         }
 
         private void InitializeDatabase(IApplicationBuilder app)
