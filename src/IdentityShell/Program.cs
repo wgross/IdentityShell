@@ -42,10 +42,10 @@ namespace IdentityShell
             {
                 webHostTask = StartWebHost(args);
 
-                InitialSessionState iss = InitialSessionState.CreateDefault();
-                iss.Commands.Add(new SessionStateCmdletEntry("Get-IdentityClient", typeof(GetIdentityClientCommand), string.Empty));
-                iss.Commands.Add(new SessionStateCmdletEntry("Set-IdentityClient", typeof(SetIdentityClientCommand), string.Empty));
-                iss.ExecutionPolicy = ExecutionPolicy.Unrestricted;
+                var iss = InitialSessionState
+                    .CreateDefault()
+                    .AddIdentityCommands();
+
                 iss.Variables.Add(new SessionStateVariableEntry("webHostTask", webHostTask, "Task executing the webhost"));
                 ConsoleShell.Start(iss, "IdentityShell", "", args);
             }

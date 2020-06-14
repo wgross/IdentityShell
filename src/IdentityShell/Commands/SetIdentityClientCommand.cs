@@ -1,7 +1,7 @@
-﻿using IdentityServer4.EntityFramework.DbContexts;
-using IdentityServer4.EntityFramework.Mappers;
+﻿using IdentityServer4.EntityFramework.Mappers;
 using IdentityServer4.Models;
-using Microsoft.Extensions.DependencyInjection;
+using IdentityShell.Data;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation;
@@ -10,10 +10,16 @@ using System.Security.Claims;
 namespace IdentityShell.Commands
 {
     [Cmdlet(VerbsCommon.Set, "IdentityClient")]
-    public class SetIdentityClientCommand : PSCmdlet
+    [CmdletBinding()]
+    public class SetIdentityClientCommand : IdentityCommandBase
     {
-        [Parameter(Mandatory = true)]
+        [Parameter(Mandatory = true, ValueFromPipelineByPropertyName = true)]
         public string ClientId { get; set; }
+
+        [Parameter(ValueFromPipeline = true)]
+        public Client InputObject { get; set; }
+
+        #region Parameter
 
         [Parameter]
         public bool AllowOfflineAccess { get; set; }
@@ -85,7 +91,7 @@ namespace IdentityShell.Commands
         public ICollection<string> AllowedScopes { get; set; }
 
         [Parameter]
-        public IDictionary<string, string> Properties { get; set; }
+        public Hashtable Properties { get; set; }
 
         [Parameter]
         public bool BackChannelLogoutSessionRequired { get; set; }
@@ -150,18 +156,44 @@ namespace IdentityShell.Commands
         [Parameter]
         public bool AllowRememberConsent { get; set; }
 
+        #endregion Parameter
+
         protected override void ProcessRecord()
         {
-            using var serviceScope = Startup.AppServices.GetService<IServiceScopeFactory>().CreateScope();
-            using var context = serviceScope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
-
-            var client = context.Clients.SingleOrDefault(c => c.ClientId == this.ClientId);
-            if (client is null)
+            using (this.ServiceProviderScope)
+            using (this.Context)
             {
-                client = new IdentityServer4.EntityFramework.Entities.Client();
-                context.Clients.Add(client);
-            }
+                IdentityServer4.Models.Client clientModel = this.InputObject;
+                IdentityServer4.EntityFramework.Entities.Client clientEntity = null;
 
+                if (clientModel is null)
+                {
+                    clientEntity = this.Query().SingleOrDefault(c => c.ClientId == this.ClientId);
+                    if (clientEntity is null)
+                    {
+                        clientModel = this.SetBoundParameters(new IdentityServer4.Models.Client());
+                        this.Context.Clients.Add(clientModel.ToEntity());
+                    }
+                    else
+                    {
+                        clientModel = this.SetBoundParameters(clientEntity.ToModel());
+                        clientModel.ToEntity(clientEntity);
+                    }
+                }
+                else
+                {
+                    clientEntity = this.Query().SingleOrDefault(c => c.ClientId == this.ClientId);
+                    this.SetBoundParameters(clientModel);
+                    clientModel.ToEntity(clientEntity);
+                }
+
+                this.Context.SaveChanges();
+                this.WriteObject(clientModel);
+            }
+        }
+
+        private Client SetBoundParameters(Client client)
+        {
             if (this.MyInvocation.BoundParameters.ContainsKey(nameof(AllowOfflineAccess)))
             {
                 client.AllowOfflineAccess = this.AllowOfflineAccess;
@@ -192,7 +224,7 @@ namespace IdentityShell.Commands
             }
             if (this.MyInvocation.BoundParameters.ContainsKey(nameof(RefreshTokenUsage)))
             {
-                client.RefreshTokenUsage = (int)this.RefreshTokenUsage;
+                client.RefreshTokenUsage = this.RefreshTokenUsage;
             }
             if (this.MyInvocation.BoundParameters.ContainsKey(nameof(UpdateAccessTokenClaimsOnRefresh)))
             {
@@ -200,28 +232,28 @@ namespace IdentityShell.Commands
             }
             if (this.MyInvocation.BoundParameters.ContainsKey(nameof(RefreshTokenExpiration)))
             {
-                client.RefreshTokenExpiration = (int)this.RefreshTokenExpiration;
+                client.RefreshTokenExpiration = this.RefreshTokenExpiration;
             }
             if (this.MyInvocation.BoundParameters.ContainsKey(nameof(AccessTokenType)))
             {
-                client.AccessTokenType = (int)this.AccessTokenType;
+                client.AccessTokenType = this.AccessTokenType;
             }
             if (this.MyInvocation.BoundParameters.ContainsKey(nameof(EnableLocalLogin)))
             {
                 client.EnableLocalLogin = this.EnableLocalLogin;
             }
-            //if (this.MyInvocation.BoundParameters.ContainsKey(nameof(IdentityProviderRestrictions)))
-            //{
-            //    client.IdentityProviderRestrictions = this.IdentityProviderRestrictions.ToList();
-            //}
+            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(IdentityProviderRestrictions)))
+            {
+                client.IdentityProviderRestrictions = this.IdentityProviderRestrictions;
+            }
             if (this.MyInvocation.BoundParameters.ContainsKey(nameof(IncludeJwtId)))
             {
                 client.IncludeJwtId = this.IncludeJwtId;
             }
-            //if (this.MyInvocation.BoundParameters.ContainsKey(nameof(Claims)))
-            //{
-            //    client.Claims = this.Claims;
-            //}
+            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(Claims)))
+            {
+                client.Claims = this.Claims;
+            }
             if (this.MyInvocation.BoundParameters.ContainsKey(nameof(AlwaysSendClientClaims)))
             {
                 client.AlwaysSendClientClaims = this.AlwaysSendClientClaims;
@@ -250,14 +282,16 @@ namespace IdentityShell.Commands
             {
                 client.AlwaysIncludeUserClaimsInIdToken = this.AlwaysIncludeUserClaimsInIdToken;
             }
-            //if (this.MyInvocation.BoundParameters.ContainsKey(nameof(AllowedScopes)))
-            //{
-            //    client.AllowedScopes = this.AllowedScopes;
-            //}
-            //if (this.MyInvocation.BoundParameters.ContainsKey(nameof(Properties)))
-            //{
-            //    client.Properties = this.Properties;
-            //}
+            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(AllowedScopes)))
+            {
+                client.AllowedScopes = this.AllowedScopes;
+            }
+            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(Properties)))
+            {
+                client.Properties = this.Properties
+                    .OfType<DictionaryEntry>()
+                    .ToDictionary(keySelector: d => d.Key.ToString(), elementSelector: d => d.Value.ToString());
+            }
             if (this.MyInvocation.BoundParameters.ContainsKey(nameof(BackChannelLogoutSessionRequired)))
             {
                 client.BackChannelLogoutSessionRequired = this.BackChannelLogoutSessionRequired;
@@ -274,10 +308,10 @@ namespace IdentityShell.Commands
             {
                 client.ProtocolType = this.ProtocolType;
             }
-            //if (this.MyInvocation.BoundParameters.ContainsKey(nameof(ClientSecrets)))
-            //{
-            //    client.ClientSecrets = this.ClientSecrets;
-            //}
+            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(ClientSecrets)))
+            {
+                client.ClientSecrets = this.ClientSecrets;
+            }
             if (this.MyInvocation.BoundParameters.ContainsKey(nameof(RequireClientSecret)))
             {
                 client.RequireClientSecret = this.RequireClientSecret;
@@ -298,18 +332,18 @@ namespace IdentityShell.Commands
             {
                 client.LogoUri = this.LogoUri;
             }
-            //if (this.MyInvocation.BoundParameters.ContainsKey(nameof(AllowedCorsOrigins)))
-            //{
-            //    client.AllowedCorsOrigins = this.AllowedCorsOrigins;
-            //}
+            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(AllowedCorsOrigins)))
+            {
+                client.AllowedCorsOrigins = this.AllowedCorsOrigins;
+            }
             if (this.MyInvocation.BoundParameters.ContainsKey(nameof(RequireConsent)))
             {
                 client.RequireConsent = this.RequireConsent;
             }
-            //if (this.MyInvocation.BoundParameters.ContainsKey(nameof(AllowedGrantTypes)))
-            //{
-            //    client.AllowedGrantTypes = this.AllowedGrantTypes;
-            //}
+            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(AllowedGrantTypes)))
+            {
+                client.AllowedGrantTypes = this.AllowedGrantTypes;
+            }
             if (this.MyInvocation.BoundParameters.ContainsKey(nameof(RequirePkce)))
             {
                 client.RequirePkce = this.RequirePkce;
@@ -322,14 +356,14 @@ namespace IdentityShell.Commands
             {
                 client.AllowAccessTokensViaBrowser = this.AllowAccessTokensViaBrowser;
             }
-            //if (this.MyInvocation.BoundParameters.ContainsKey(nameof(RedirectUris)))
-            //{
-            //    client.RedirectUris = this.RedirectUris;
-            //}
-            //if (this.MyInvocation.BoundParameters.ContainsKey(nameof(PostLogoutRedirectUris)))
-            //{
-            //    client.PostLogoutRedirectUris = this.PostLogoutRedirectUris;
-            //}
+            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(RedirectUris)))
+            {
+                client.RedirectUris = this.RedirectUris;
+            }
+            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(PostLogoutRedirectUris)))
+            {
+                client.PostLogoutRedirectUris = this.PostLogoutRedirectUris;
+            }
             if (this.MyInvocation.BoundParameters.ContainsKey(nameof(FrontChannelLogoutUri)))
             {
                 client.FrontChannelLogoutUri = this.FrontChannelLogoutUri;
@@ -347,8 +381,7 @@ namespace IdentityShell.Commands
                 client.AllowRememberConsent = this.AllowRememberConsent;
             }
 
-            context.SaveChanges();
-            this.WriteObject(client.ToModel());
+            return client;
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using IdentityServer4.EntityFramework.DbContexts;
-using Microsoft.Extensions.DependencyInjection;
+﻿using IdentityServer4.EntityFramework.Mappers;
 using System.Linq;
 using System.Management.Automation;
 
@@ -11,9 +10,11 @@ namespace IdentityShell.Commands
     {
         protected override void ProcessRecord()
         {
-            using var context = ServiceProvider.CreateScope().ServiceProvider.GetRequiredService<ConfigurationDbContext>();
-
-            context.Clients.ToList().ForEach(client => this.WriteObject(client));
+            using (this.ServiceProviderScope)
+            using (this.Context)
+            {
+                this.Query().ToList().ForEach(c => this.WriteObject(c.ToModel()));
+            }
         }
     }
 }

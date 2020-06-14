@@ -1,15 +1,20 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26124.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{BA11CD37-A7A0-4F90-B2CB-E740B20DFD35}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdentityShell", "src\IdentityShell\IdentityShell.csproj", "{69596F91-8604-47AF-AB71-B801BA25AC0D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IdentityShell", "src\IdentityShell\IdentityShell.csproj", "{69596F91-8604-47AF-AB71-B801BA25AC0D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{537F6764-9FAE-45AF-8775-E47E15F84F64}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdentityShell.Test", "test\IdentityShell.Test\IdentityShell.Test.csproj", "{60DDC7FA-B1D9-4340-BDF2-870C4DB8172D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IdentityShell.Test", "test\IdentityShell.Test\IdentityShell.Test.csproj", "{60DDC7FA-B1D9-4340-BDF2-870C4DB8172D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C2195F40-EC0A-40E1-AA45-AFDBAADE39EF}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,9 +24,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{69596F91-8604-47AF-AB71-B801BA25AC0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -49,8 +51,14 @@ Global
 		{60DDC7FA-B1D9-4340-BDF2-870C4DB8172D}.Release|x86.ActiveCfg = Release|Any CPU
 		{60DDC7FA-B1D9-4340-BDF2-870C4DB8172D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{69596F91-8604-47AF-AB71-B801BA25AC0D} = {BA11CD37-A7A0-4F90-B2CB-E740B20DFD35}
 		{60DDC7FA-B1D9-4340-BDF2-870C4DB8172D} = {537F6764-9FAE-45AF-8775-E47E15F84F64}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E8FFABDC-08A3-43C0-AA88-9222DAC74A14}
 	EndGlobalSection
 EndGlobal
