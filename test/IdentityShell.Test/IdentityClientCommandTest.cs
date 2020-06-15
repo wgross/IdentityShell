@@ -121,7 +121,10 @@ namespace IdentityShell.Test
                     .AddParameter("BackChannelLogoutSessionRequired", true)
                     .AddParameter("Enabled", true)
                     .AddParameter("ProtocolType", "protocolType")
-                    .AddParameter("ClientSecrets", new[] { new Secret("value", "description", DateTime.Now) })
+                    .AddParameter("ClientSecrets", new[] 
+                    { 
+                        new Secret("value", "description", DateTime.Now) 
+                    })
                     .AddParameter("RequireClientSecret", true)
                     .AddParameter("ClientName", "clientname")
                     .AddParameter("Description", "description")

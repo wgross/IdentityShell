@@ -1,4 +1,5 @@
 ﻿using IdentityServer4.EntityFramework.DbContexts;
+using IdentityServer4.Models;
 using IdentityShell.Commands;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,14 +15,14 @@ using Xunit;
 
 namespace IdentityShell.Test
 {
-    public class IdentityResourceCommandTest
+    public class IdentityApiResourceCommandTest
     {
         private readonly IServiceProvider serviceProvider;
         private readonly string connectionString;
 
         public PowerShell PowerShell { get; }
 
-        public IdentityResourceCommandTest()
+        public IdentityApiResourceCommandTest()
         {
             string createConnectionString(Guid instanceId, string path) => $@"Data Source=(LocalDb)\MSSQLLocalDB;database=IdentityShell.Test.{instanceId};trusted_connection=yes;AttachDBFilename={path}\IdentityShell-{instanceId}.mdf";
 
@@ -51,22 +52,33 @@ namespace IdentityShell.Test
             this.PowerShell = PowerShell.Create(InitialSessionState.CreateDefault().AddIdentityCommands());
         }
 
-        private PSObject ArrangeIdentityResource()
+        private PSObject ArrangeIdentityApiResource(DateTime secretExpiration)
         {
             this.PowerShell
-                   .AddCommand("Set-IdentityResource")
-                       .AddParameter("Name", "name")
-                       .AddParameter("DisplayName", "displayName")
-                       .AddParameter("Description", "description")
-                       .AddParameter("ShowInDiscoveryDocument", true)
-                       .AddParameter("UserClaims", new[] { "claim-1", "claim-2" })
-                       .AddParameter("Properties", new Hashtable
-                       {
+                   .AddCommand("Set-IdentityApiResource")
+                        .AddParameter("Name", "name")
+                        .AddParameter("DisplayName", "displayName")
+                        .AddParameter("Description", "description")
+                        .AddParameter("UserClaims", new[] { "claim-1", "claim-2" })
+                        .AddParameter("Properties", new Hashtable
+                        {
                         {"p1", "v1" },
                         {"p2", "v2" }
-                       })
-                       .AddParameter("Required", true)
-                       .AddParameter("Emphasize", true);
+                        })
+                        .AddParameter("ApiSecrets", new[]
+                        {
+                            new Secret("value", "description", secretExpiration)
+                        })
+                        .AddParameter("Scopes", new[]
+                        {
+                            new Scope("name", "displayName", new[]{"claimType" })
+                            {
+                                Description = "description",
+                                Emphasize = true,
+                                Required = true,
+                                ShowInDiscoveryDocument = true
+                            }
+                        });
 
             var pso = this.PowerShell.Invoke().Single();
             this.PowerShell.Commands.Clear();
@@ -74,12 +86,12 @@ namespace IdentityShell.Test
         }
 
         [Fact]
-        public void IdentityShell_read_empty_user_table()
+        public void IdentityShell_reads_empty_api_table()
         {
             // ACT
 
             this.PowerShell
-                .AddCommand("Get-IdentityResource");
+                .AddCommand("Get-IdentityApiResource");
 
             var result = this.PowerShell.Invoke().ToArray();
 
@@ -90,24 +102,36 @@ namespace IdentityShell.Test
         }
 
         [Fact]
-        public void IdentityShell_creates_identity()
+        public void IdentityShell_creates_api()
         {
             // ACT
+            var secretExpiration = DateTime.Now;
 
             this.PowerShell
-                .AddCommand("Set-IdentityResource")
+                .AddCommand("Set-IdentityApiResource")
                     .AddParameter("Name", "name")
                     .AddParameter("DisplayName", "displayName")
                     .AddParameter("Description", "description")
-                    .AddParameter("ShowInDiscoveryDocument", true)
                     .AddParameter("UserClaims", new[] { "claim-1", "claim-2" })
                     .AddParameter("Properties", new Hashtable
                     {
-                        {"p1", "v1" },
-                        {"p2", "v2" }
+                    {"p1", "v1" },
+                    {"p2", "v2" }
                     })
-                    .AddParameter("Required", true)
-                    .AddParameter("Emphasize", true);
+                    .AddParameter("ApiSecrets", new[]
+                    {
+                        new Secret("value", "description", secretExpiration)
+                    })
+                    .AddParameter("Scopes", new[]
+                    {
+                        new Scope("name", "displayName", new[]{"claimType" })
+                        {
+                            Description = "description",
+                            Emphasize = true,
+                            Required = true,
+                            ShowInDiscoveryDocument = true
+                        }
+                    });
 
             var result = this.PowerShell.Invoke().ToArray();
 
@@ -118,15 +142,15 @@ namespace IdentityShell.Test
         }
 
         [Fact]
-        public void IdentityShell_reads_all_identities()
+        public void IdentityShell_reads_all_apis()
         {
             // ARRANGE
-
-            var pso = ArrangeIdentityResource();
+            var secretExpiration = DateTime.Now;
+            var pso = ArrangeIdentityApiResource(secretExpiration);
 
             // ACT
 
-            this.PowerShell.AddCommand("Get-IdentityResource");
+            this.PowerShell.AddCommand("Get-IdentityApiResource");
             var result = this.PowerShell.Invoke().ToArray();
 
             // ASSERT
@@ -139,9 +163,6 @@ namespace IdentityShell.Test
             Assert.Equal("name", resultValue.Property<string>("Name"));
             Assert.Equal("displayName", resultValue.Property<string>("DisplayName"));
             Assert.Equal("description", resultValue.Property<string>("Description"));
-            Assert.True(resultValue.Property<bool>("Required"));
-            Assert.True(resultValue.Property<bool>("Emphasize"));
-            Assert.True(resultValue.Property<bool>("ShowInDiscoveryDocument"));
             Assert.Equal(new[] { "claim-1", "claim-2" }, resultValue.Property<ICollection<string>>("UserClaims"));
             Assert.Equal(new Dictionary<string, string>
             {
@@ -149,18 +170,26 @@ namespace IdentityShell.Test
                 {"p2", "v2" }
             },
             resultValue.Property<IDictionary<string, string>>("Properties"));
+
+            Assert.Equal("name", resultValue.Property<ICollection<Scope>>("Scopes").Single().Name);
+            Assert.Equal("description", resultValue.Property<ICollection<Scope>>("Scopes").Single().Description);
+            Assert.Equal("displayName", resultValue.Property<ICollection<Scope>>("Scopes").Single().DisplayName);
+            Assert.True(resultValue.Property<ICollection<Scope>>("Scopes").Single().Emphasize);
+            Assert.True(resultValue.Property<ICollection<Scope>>("Scopes").Single().ShowInDiscoveryDocument);
+            Assert.True(resultValue.Property<ICollection<Scope>>("Scopes").Single().Required);
         }
 
         [Fact]
         public void IdentityShell_modifies_piped_identity()
         {
-            var pso = ArrangeIdentityResource();
+            var secretExpiration = DateTime.Now;
+            var pso = ArrangeIdentityApiResource(secretExpiration);
 
             // ACT
 
             this.PowerShell
-                .AddCommand("Set-IdentityResource")
-                    .AddParameter("Required", false);
+                .AddCommand("Set-IdentityApiResource")
+                    .AddParameter("DisplayName", "displayname-changed");
 
             var result = this.PowerShell.Invoke(new[] { pso }).ToArray();
 
@@ -170,7 +199,7 @@ namespace IdentityShell.Test
 
             var resultValue = result.Single();
 
-            Assert.False(resultValue.Property<bool>("Required"));
+            Assert.Equal("displayname-changed", resultValue.Property<string>("DisplayName"));
             Assert.Same(pso.ImmediateBaseObject, resultValue.ImmediateBaseObject);
         }
     }

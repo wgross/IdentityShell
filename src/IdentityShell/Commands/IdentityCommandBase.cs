@@ -41,5 +41,15 @@ namespace IdentityShell.Commands
                 .Include(x => x.UserClaims)
                 .Include(x => x.Properties);
         }
+
+        protected IQueryable<IdentityServer4.EntityFramework.Entities.ApiResource> QueryApiResource()
+        {
+            return Context.ApiResources
+                .AsQueryable()
+                .Include(x => x.UserClaims)
+                .Include(x => x.Properties)
+                .Include(x => x.Secrets)
+                .Include(x => x.Scopes);
+        }
     }
 }

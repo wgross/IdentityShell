@@ -12,6 +12,8 @@ namespace IdentityShell.Commands
             sessionState.Commands.Add(new SessionStateCmdletEntry("Set-IdentityClient", typeof(SetIdentityClientCommand), string.Empty));
             sessionState.Commands.Add(new SessionStateCmdletEntry("Get-IdentityResource", typeof(GetIdentityResourceCommand), string.Empty));
             sessionState.Commands.Add(new SessionStateCmdletEntry("Set-IdentityResource", typeof(SetIdentityResourceCommand), string.Empty));
+            sessionState.Commands.Add(new SessionStateCmdletEntry("Get-IdentityApiResource", typeof(GetIdentityApiResourceCommand), string.Empty));
+            sessionState.Commands.Add(new SessionStateCmdletEntry("Set-IdentityApiResource", typeof(SetIdentityApiResourceCommand), string.Empty));
             return sessionState;
         }
     }
