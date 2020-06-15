@@ -303,18 +303,18 @@ namespace IdentityShell.Test
         }
 
         [Fact]
-        public void IdentityShell_modifies_piped_in_client()
+        public void IdentityShell_modifies_piped_client()
         {
             var clientSecretExpiration = DateTime.Now;
-            var clientPso = ArrangeClient(clientSecretExpiration);
+            var pso = ArrangeClient(clientSecretExpiration);
 
             // ACT
 
             this.PowerShell
                 .AddCommand("Set-IdentityClient")
-                    .AddParameter("RequireConsent", true);
+                    .AddParameter("RequireConsent", false);
 
-            var result = this.PowerShell.Invoke(new[] { clientPso }).ToArray();
+            var result = this.PowerShell.Invoke(new[] { pso }).ToArray();
 
             // ASSERT
 
@@ -322,7 +322,8 @@ namespace IdentityShell.Test
 
             var resultValue = result.Single();
 
-            Assert.True(resultValue.Property<bool>("RequireConsent"));
+            Assert.False(resultValue.Property<bool>("RequireConsent"));
+            Assert.Same(pso.ImmediateBaseObject, resultValue.ImmediateBaseObject);
         }
     }
 }

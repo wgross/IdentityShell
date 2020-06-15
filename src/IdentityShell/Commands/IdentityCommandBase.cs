@@ -17,7 +17,7 @@ namespace IdentityShell.Commands
 
         protected ConfigurationDbContext Context => this.context ??= ServiceProviderScope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
 
-        protected IQueryable<IdentityServer4.EntityFramework.Entities.Client> Query()
+        protected IQueryable<IdentityServer4.EntityFramework.Entities.Client> QueryClients()
         {
             var query = Context.Clients.AsQueryable();
 
@@ -32,6 +32,14 @@ namespace IdentityShell.Commands
             query.Include(x => x.RedirectUris).SelectMany(c => c.RedirectUris).Load();
 
             return query;
+        }
+
+        protected IQueryable<IdentityServer4.EntityFramework.Entities.IdentityResource> QueryIdentityResource()
+        {
+            return Context.IdentityResources
+                .AsQueryable()
+                .Include(x => x.UserClaims)
+                .Include(x => x.Properties);
         }
     }
 }

@@ -4,16 +4,16 @@ using System.Management.Automation;
 
 namespace IdentityShell.Commands
 {
-    [Cmdlet(VerbsCommon.Get, "IdentityClient")]
-    [OutputType(typeof(IdentityServer4.Models.Client))]
-    public sealed class GetIdentityClientCommand : IdentityCommandBase
+    [Cmdlet(VerbsCommon.Get, "IdentityResource")]
+    [OutputType(typeof(IdentityServer4.Models.IdentityResource))]
+    public class GetIdentityResourceCommand : IdentityCommandBase
     {
         protected override void ProcessRecord()
         {
             using (this.ServiceProviderScope)
             using (this.Context)
             {
-                this.QueryClients().ToList().ForEach(c => this.WriteObject(c.ToModel()));
+                this.QueryIdentityResource().ToList().ForEach(ir => this.WriteObject(ir.ToModel()));
             }
         }
     }

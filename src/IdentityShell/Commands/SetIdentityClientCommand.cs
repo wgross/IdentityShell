@@ -11,6 +11,7 @@ namespace IdentityShell.Commands
 {
     [Cmdlet(VerbsCommon.Set, "IdentityClient")]
     [CmdletBinding()]
+    [OutputType(typeof(IdentityServer4.Models.Client))]
     public class SetIdentityClientCommand : IdentityCommandBase
     {
         [Parameter(Mandatory = true, ValueFromPipelineByPropertyName = true)]
@@ -168,7 +169,7 @@ namespace IdentityShell.Commands
 
                 if (clientModel is null)
                 {
-                    clientEntity = this.Query().SingleOrDefault(c => c.ClientId == this.ClientId);
+                    clientEntity = this.QueryClients().SingleOrDefault(c => c.ClientId == this.ClientId);
                     if (clientEntity is null)
                     {
                         clientModel = this.SetBoundParameters(new IdentityServer4.Models.Client());
@@ -182,7 +183,7 @@ namespace IdentityShell.Commands
                 }
                 else
                 {
-                    clientEntity = this.Query().SingleOrDefault(c => c.ClientId == this.ClientId);
+                    clientEntity = this.QueryClients().SingleOrDefault(c => c.ClientId == this.ClientId);
                     this.SetBoundParameters(clientModel);
                     clientModel.ToEntity(clientEntity);
                 }
