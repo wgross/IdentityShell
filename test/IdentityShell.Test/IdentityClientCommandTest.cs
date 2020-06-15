@@ -16,6 +16,7 @@ using Xunit;
 
 namespace IdentityShell.Test
 {
+    [Collection(nameof(ConfigurationDbContext))]
     public class IdentityClientCommandTest : IDisposable
     {
         private readonly IServiceProvider serviceProvider;
@@ -121,9 +122,9 @@ namespace IdentityShell.Test
                     .AddParameter("BackChannelLogoutSessionRequired", true)
                     .AddParameter("Enabled", true)
                     .AddParameter("ProtocolType", "protocolType")
-                    .AddParameter("ClientSecrets", new[] 
-                    { 
-                        new Secret("value", "description", DateTime.Now) 
+                    .AddParameter("ClientSecrets", new[]
+                    {
+                        new IdentityServer4.Models.Secret("value", "description", DateTime.Now)
                     })
                     .AddParameter("RequireClientSecret", true)
                     .AddParameter("ClientName", "clientname")
@@ -223,10 +224,10 @@ namespace IdentityShell.Test
             Assert.Equal("backChannelLogoutUri", resultValue.Property<string>("BackChannelLogoutUri"));
             Assert.True(resultValue.Property<bool>("AllowRememberConsent"));
 
-            Assert.Equal("value", resultValue.Property<IEnumerable<Secret>>("ClientSecrets").Single().Value);
-            Assert.Equal("description", resultValue.Property<IEnumerable<Secret>>("ClientSecrets").Single().Description);
-            Assert.Equal(clientSecretExpiration, resultValue.Property<IEnumerable<Secret>>("ClientSecrets").Single().Expiration);
-            Assert.Equal("type", resultValue.Property<IEnumerable<Secret>>("ClientSecrets").Single().Type);
+            Assert.Equal("value", resultValue.Property<IEnumerable<IdentityServer4.Models.Secret>>("ClientSecrets").Single().Value);
+            Assert.Equal("description", resultValue.Property<IEnumerable<IdentityServer4.Models.Secret>>("ClientSecrets").Single().Description);
+            Assert.Equal(clientSecretExpiration, resultValue.Property<IEnumerable<IdentityServer4.Models.Secret>>("ClientSecrets").Single().Expiration);
+            Assert.Equal("type", resultValue.Property<IEnumerable<IdentityServer4.Models.Secret>>("ClientSecrets").Single().Type);
 
             Assert.Equal("type", resultValue.Property<ICollection<Claim>>("Claims").Single().Type);
             Assert.Equal("value", resultValue.Property<ICollection<Claim>>("Claims").Single().Value);
@@ -277,7 +278,7 @@ namespace IdentityShell.Test
                     .AddParameter("ProtocolType", "protocolType")
                     .AddParameter("ClientSecrets", new[]
                     {
-                        new Secret("value", "description", clientSecretExpiration)
+                        new IdentityServer4.Models.Secret("value", "description", clientSecretExpiration)
                         {
                             Type = "type"
                         }
@@ -327,6 +328,53 @@ namespace IdentityShell.Test
 
             Assert.False(resultValue.Property<bool>("RequireConsent"));
             Assert.Same(pso.ImmediateBaseObject, resultValue.ImmediateBaseObject);
+        }
+
+        [Fact]
+        public void IdentityShell_removes_client()
+        {
+            // ARRANGE
+
+            var clientSecretExpiration = DateTime.Now;
+            var pso = ArrangeClient(clientSecretExpiration);
+
+            // ACT
+
+            this.PowerShell
+                .AddCommand("Remove-IdentityClient")
+                    .AddParameter("ClientId", "client-id");
+
+            this.PowerShell.Invoke();
+
+            // ASSERT
+
+            Assert.False(this.PowerShell.HadErrors);
+
+            this.PowerShell.Commands.Clear();
+
+            Assert.Empty(this.PowerShell.AddCommand("Get-IdentityClient").Invoke().ToArray());
+        }
+
+        [Fact]
+        public void IdentityShell_removes_client_from_pipe()
+        {
+            // ARRANGE
+
+            var clientSecretExpiration = DateTime.Now;
+            var pso = ArrangeClient(clientSecretExpiration);
+
+            // ACT
+
+            this.PowerShell.AddCommand("Remove-IdentityClient");
+            this.PowerShell.Invoke(new[] { pso });
+
+            // ASSERT
+
+            Assert.False(this.PowerShell.HadErrors);
+
+            this.PowerShell.Commands.Clear();
+
+            Assert.Empty(this.PowerShell.AddCommand("Get-IdentityClient").Invoke().ToArray());
         }
     }
 }

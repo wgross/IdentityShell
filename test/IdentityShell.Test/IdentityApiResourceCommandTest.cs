@@ -15,6 +15,7 @@ using Xunit;
 
 namespace IdentityShell.Test
 {
+    [Collection(nameof(ConfigurationDbContext))]
     public class IdentityApiResourceCommandTest
     {
         private readonly IServiceProvider serviceProvider;
@@ -180,7 +181,7 @@ namespace IdentityShell.Test
         }
 
         [Fact]
-        public void IdentityShell_modifies_piped_identity()
+        public void IdentityShell_modifies_piped_api()
         {
             var secretExpiration = DateTime.Now;
             var pso = ArrangeIdentityApiResource(secretExpiration);
@@ -201,6 +202,53 @@ namespace IdentityShell.Test
 
             Assert.Equal("displayname-changed", resultValue.Property<string>("DisplayName"));
             Assert.Same(pso.ImmediateBaseObject, resultValue.ImmediateBaseObject);
+        }
+
+        [Fact]
+        public void IdentityShell_removes_api()
+        {
+            // ARRANGE
+
+            var secretExpiration = DateTime.Now;
+            var pso = ArrangeIdentityApiResource(secretExpiration);
+
+            // ACT
+
+            this.PowerShell
+                .AddCommand("Remove-IdentityApiResource")
+                    .AddParameter("Name", "name");
+
+            this.PowerShell.Invoke();
+
+            // ASSERT
+
+            Assert.False(this.PowerShell.HadErrors);
+
+            this.PowerShell.Commands.Clear();
+
+            Assert.Empty(this.PowerShell.AddCommand("Get-IdentityApiResource").Invoke().ToArray());
+        }
+
+        [Fact]
+        public void IdentityShell_removes_api_from_pipe()
+        {
+            // ARRANGE
+
+            var secretExpiration = DateTime.Now;
+            var pso = ArrangeIdentityApiResource(secretExpiration);
+
+            // ACT
+
+            this.PowerShell.AddCommand("Remove-IdentityApiResource");
+            this.PowerShell.Invoke(new[] { pso });
+
+            // ASSERT
+
+            Assert.False(this.PowerShell.HadErrors);
+
+            this.PowerShell.Commands.Clear();
+
+            Assert.Empty(this.PowerShell.AddCommand("Get-IdentityApiResource").Invoke().ToArray());
         }
     }
 }

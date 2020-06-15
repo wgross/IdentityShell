@@ -14,6 +14,7 @@ using Xunit;
 
 namespace IdentityShell.Test
 {
+    [Collection(nameof(ConfigurationDbContext))]
     public class IdentityResourceCommandTest
     {
         private readonly IServiceProvider serviceProvider;
@@ -172,6 +173,51 @@ namespace IdentityShell.Test
 
             Assert.False(resultValue.Property<bool>("Required"));
             Assert.Same(pso.ImmediateBaseObject, resultValue.ImmediateBaseObject);
+        }
+
+        [Fact]
+        public void IdentityShell_removes_identity()
+        {
+            // ARRANGE
+
+            var pso = ArrangeIdentityResource();
+
+            // ACT
+
+            this.PowerShell
+                .AddCommand("Remove-IdentityResource")
+                    .AddParameter("Name", "name");
+
+            this.PowerShell.Invoke();
+
+            // ASSERT
+
+            Assert.False(this.PowerShell.HadErrors);
+
+            this.PowerShell.Commands.Clear();
+
+            Assert.Empty(this.PowerShell.AddCommand("Get-IdentityResource").Invoke().ToArray());
+        }
+
+        [Fact]
+        public void IdentityShell_removes_identity_from_pipe()
+        {
+            // ARRANGE
+
+            var pso = ArrangeIdentityResource();
+
+            // ACT
+
+            this.PowerShell.AddCommand("Remove-IdentityResource");
+            this.PowerShell.Invoke(new[] { pso });
+
+            // ASSERT
+
+            Assert.False(this.PowerShell.HadErrors);
+
+            this.PowerShell.Commands.Clear();
+
+            Assert.Empty(this.PowerShell.AddCommand("Get-IdentityResource").Invoke().ToArray());
         }
     }
 }

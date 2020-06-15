@@ -42,8 +42,6 @@ namespace IdentityShell.Commands
 
         protected override void ProcessRecord()
         {
-            base.ProcessRecord();
-
             using (this.ServiceProviderScope)
             using (this.Context)
             {
