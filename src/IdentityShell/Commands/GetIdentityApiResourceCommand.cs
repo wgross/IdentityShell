@@ -9,12 +9,8 @@ namespace IdentityShell.Commands
     public class GetIdentityApiResourceCommand : IdentityCommandBase
     {
         protected override void ProcessRecord()
-        {
-            using (this.ServiceProviderScope)
-            using (this.Context)
-            {
-                this.QueryApiResource().ToList().ForEach(c => this.WriteObject(c.ToModel()));
-            }
+        {            
+            this.QueryApiResource().ToList().ForEach(c => this.WriteObject(c.ToModel()));
         }
     }
 }

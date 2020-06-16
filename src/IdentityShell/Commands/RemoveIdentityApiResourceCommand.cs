@@ -15,24 +15,20 @@ namespace IdentityShell.Commands
 
         protected override void ProcessRecord()
         {
-            using (this.ServiceProviderScope)
-            using (this.Context)
+            var apiEntity = this.QueryApiResource().SingleOrDefault(c => c.Name == this.Name);
+
+            if (apiEntity is null)
             {
-                var apiEntity = this.QueryApiResource().SingleOrDefault(c => c.Name == this.Name);
-
-                if (apiEntity is null)
-                {
-                    this.WriteError(new ErrorRecord(
-                        exception: new PSInvalidOperationException($"api(name='{0}') doesn't exist"),
-                        errorId: "api.not_found",
-                        errorCategory: ErrorCategory.ObjectNotFound,
-                        targetObject: this.Name));
-                    return;
-                }
-
-                this.Context.ApiResources.Remove(apiEntity);
-                this.Context.SaveChanges();
+                this.WriteError(new ErrorRecord(
+                    exception: new PSInvalidOperationException($"api(name='{0}') doesn't exist"),
+                    errorId: "api.not_found",
+                    errorCategory: ErrorCategory.ObjectNotFound,
+                    targetObject: this.Name));
+                return;
             }
+
+            this.Context.ApiResources.Remove(apiEntity);
+            this.Context.SaveChanges();
         }
     }
 }

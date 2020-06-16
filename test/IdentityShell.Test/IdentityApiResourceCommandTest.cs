@@ -189,10 +189,11 @@ namespace IdentityShell.Test
             // ACT
 
             this.PowerShell
+                .AddCommand("Get-IdentityApiResource")
                 .AddCommand("Set-IdentityApiResource")
                     .AddParameter("DisplayName", "displayname-changed");
 
-            var result = this.PowerShell.Invoke(new[] { pso }).ToArray();
+            var result = this.PowerShell.Invoke().ToArray();
 
             // ASSERT
 
@@ -201,7 +202,6 @@ namespace IdentityShell.Test
             var resultValue = result.Single();
 
             Assert.Equal("displayname-changed", resultValue.Property<string>("DisplayName"));
-            Assert.Same(pso.ImmediateBaseObject, resultValue.ImmediateBaseObject);
         }
 
         [Fact]
@@ -235,12 +235,14 @@ namespace IdentityShell.Test
             // ARRANGE
 
             var secretExpiration = DateTime.Now;
-            var pso = ArrangeIdentityApiResource(secretExpiration);
+            ArrangeIdentityApiResource(secretExpiration);
 
             // ACT
 
-            this.PowerShell.AddCommand("Remove-IdentityApiResource");
-            this.PowerShell.Invoke(new[] { pso });
+            this.PowerShell
+                .AddCommand("Get-IdentityApiResource")
+                .AddCommand("Remove-IdentityApiResource");
+            this.PowerShell.Invoke();
 
             // ASSERT
 

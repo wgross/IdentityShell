@@ -15,7 +15,18 @@ namespace IdentityShell.Commands
 
         private ConfigurationDbContext context = null;
 
-        protected ConfigurationDbContext Context => this.context ??= ServiceProviderScope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
+        protected ConfigurationDbContext Context { get; private set; }
+
+        protected override void BeginProcessing()
+        {
+            this.Context = ServiceProvider.CreateScope().ServiceProvider.GetRequiredService<ConfigurationDbContext>();
+        }
+
+        protected override void EndProcessing()
+        {
+            this.Context.Dispose();
+            this.Context = null;
+        }
 
         protected IQueryable<IdentityServer4.EntityFramework.Entities.Client> QueryClients()
         {

@@ -15,24 +15,20 @@ namespace IdentityShell.Commands
 
         protected override void ProcessRecord()
         {
-            using (this.ServiceProviderScope)
-            using (this.Context)
+            var identityEntity = this.QueryIdentityResource().SingleOrDefault(c => c.Name == this.Name);
+
+            if (identityEntity is null)
             {
-                var identityEntity = this.QueryIdentityResource().SingleOrDefault(c => c.Name == this.Name);
-
-                if (identityEntity is null)
-                {
-                    this.WriteError(new ErrorRecord(
-                        exception: new PSInvalidOperationException($"identity(name='{0}') doesn't exist"),
-                        errorId: "identity.not_found",
-                        errorCategory: ErrorCategory.ObjectNotFound,
-                        targetObject: this.Name));
-                    return;
-                }
-
-                this.Context.IdentityResources.Remove(identityEntity);
-                this.Context.SaveChanges();
+                this.WriteError(new ErrorRecord(
+                    exception: new PSInvalidOperationException($"identity(name='{0}') doesn't exist"),
+                    errorId: "identity.not_found",
+                    errorCategory: ErrorCategory.ObjectNotFound,
+                    targetObject: this.Name));
+                return;
             }
+
+            this.Context.IdentityResources.Remove(identityEntity);
+            this.Context.SaveChanges();
         }
     }
 }

@@ -46,36 +46,32 @@ namespace IdentityShell.Commands
         {
             base.ProcessRecord();
 
-            using (this.ServiceProviderScope)
-            using (this.Context)
-            {
-                IdentityServer4.Models.IdentityResource identityModel = this.InputObject;
-                IdentityServer4.EntityFramework.Entities.IdentityResource identityEntity = null;
+            IdentityServer4.Models.IdentityResource identityModel = this.InputObject;
+            IdentityServer4.EntityFramework.Entities.IdentityResource identityEntity = null;
 
-                if (identityModel is null)
+            if (identityModel is null)
+            {
+                identityEntity = this.QueryIdentityResource().SingleOrDefault(c => c.Name == this.Name);
+                if (identityEntity is null)
                 {
-                    identityEntity = this.QueryIdentityResource().SingleOrDefault(c => c.Name == this.Name);
-                    if (identityEntity is null)
-                    {
-                        identityModel = this.SetBoundParameters(new IdentityServer4.Models.IdentityResource());
-                        this.Context.IdentityResources.Add(identityModel.ToEntity());
-                    }
-                    else
-                    {
-                        identityModel = this.SetBoundParameters(identityEntity.ToModel());
-                        identityModel.ToEntity(identityEntity);
-                    }
+                    identityModel = this.SetBoundParameters(new IdentityServer4.Models.IdentityResource());
+                    this.Context.IdentityResources.Add(identityModel.ToEntity());
                 }
                 else
                 {
-                    identityEntity = this.QueryIdentityResource().SingleOrDefault(c => c.Name == this.Name);
-                    this.SetBoundParameters(identityModel);
+                    identityModel = this.SetBoundParameters(identityEntity.ToModel());
                     identityModel.ToEntity(identityEntity);
                 }
-
-                this.Context.SaveChanges();
-                this.WriteObject(identityModel);
             }
+            else
+            {
+                identityEntity = this.QueryIdentityResource().SingleOrDefault(c => c.Name == this.Name);
+                this.SetBoundParameters(identityModel);
+                identityModel.ToEntity(identityEntity);
+            }
+
+            this.Context.SaveChanges();
+            this.WriteObject(identityModel);
         }
 
         private IdentityServer4.Models.IdentityResource SetBoundParameters(IdentityServer4.Models.IdentityResource identity)

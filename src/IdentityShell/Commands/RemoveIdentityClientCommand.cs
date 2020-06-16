@@ -15,24 +15,20 @@ namespace IdentityShell.Commands
 
         protected override void ProcessRecord()
         {
-            using (this.ServiceProviderScope)
-            using (this.Context)
+            var clientEntity = this.QueryClients().SingleOrDefault(c => c.ClientId == this.ClientId);
+
+            if (clientEntity is null)
             {
-                var clientEntity = this.QueryClients().SingleOrDefault(c => c.ClientId == this.ClientId);
-
-                if (clientEntity is null)
-                {
-                    this.WriteError(new ErrorRecord(
-                        exception: new PSInvalidOperationException($"client(clientId='{0}') doesn't exist"),
-                        errorId: "client.not_found",
-                        errorCategory: ErrorCategory.ObjectNotFound,
-                        targetObject: this.ClientId));
-                    return;
-                }
-
-                this.Context.Clients.Remove(clientEntity);
-                this.Context.SaveChanges();
+                this.WriteError(new ErrorRecord(
+                    exception: new PSInvalidOperationException($"client(clientId='{0}') doesn't exist"),
+                    errorId: "client.not_found",
+                    errorCategory: ErrorCategory.ObjectNotFound,
+                    targetObject: this.ClientId));
+                return;
             }
+
+            this.Context.Clients.Remove(clientEntity);
+            this.Context.SaveChanges();
         }
     }
 }

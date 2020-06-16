@@ -161,36 +161,33 @@ namespace IdentityShell.Commands
 
         protected override void ProcessRecord()
         {
-            using (this.ServiceProviderScope)
-            using (this.Context)
-            {
-                IdentityServer4.Models.Client clientModel = this.InputObject;
-                IdentityServer4.EntityFramework.Entities.Client clientEntity = null;
+            
+            IdentityServer4.Models.Client clientModel = this.InputObject;
+            IdentityServer4.EntityFramework.Entities.Client clientEntity = null;
 
-                if (clientModel is null)
+            if (clientModel is null)
+            {
+                clientEntity = this.QueryClients().SingleOrDefault(c => c.ClientId == this.ClientId);
+                if (clientEntity is null)
                 {
-                    clientEntity = this.QueryClients().SingleOrDefault(c => c.ClientId == this.ClientId);
-                    if (clientEntity is null)
-                    {
-                        clientModel = this.SetBoundParameters(new IdentityServer4.Models.Client());
-                        this.Context.Clients.Add(clientModel.ToEntity());
-                    }
-                    else
-                    {
-                        clientModel = this.SetBoundParameters(clientEntity.ToModel());
-                        clientModel.ToEntity(clientEntity);
-                    }
+                    clientModel = this.SetBoundParameters(new IdentityServer4.Models.Client());
+                    this.Context.Clients.Add(clientModel.ToEntity());
                 }
                 else
                 {
-                    clientEntity = this.QueryClients().SingleOrDefault(c => c.ClientId == this.ClientId);
-                    this.SetBoundParameters(clientModel);
+                    clientModel = this.SetBoundParameters(clientEntity.ToModel());
                     clientModel.ToEntity(clientEntity);
                 }
-
-                this.Context.SaveChanges();
-                this.WriteObject(clientModel);
             }
+            else
+            {
+                clientEntity = this.QueryClients().SingleOrDefault(c => c.ClientId == this.ClientId);
+                this.SetBoundParameters(clientModel);
+                clientModel.ToEntity(clientEntity);
+            }
+
+            this.Context.SaveChanges();
+            this.WriteObject(clientModel);
         }
 
         private Client SetBoundParameters(Client client)

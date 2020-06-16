@@ -9,12 +9,8 @@ namespace IdentityShell.Commands
     public sealed class GetIdentityClientCommand : IdentityCommandBase
     {
         protected override void ProcessRecord()
-        {
-            using (this.ServiceProviderScope)
-            using (this.Context)
-            {
-                this.QueryClients().ToList().ForEach(c => this.WriteObject(c.ToModel()));
-            }
+        {            
+            this.QueryClients().ToList().ForEach(c => this.WriteObject(c.ToModel()));
         }
     }
 }

@@ -42,36 +42,32 @@ namespace IdentityShell.Commands
 
         protected override void ProcessRecord()
         {
-            using (this.ServiceProviderScope)
-            using (this.Context)
-            {
-                IdentityServer4.Models.ApiResource apiModel = this.InputObject;
-                IdentityServer4.EntityFramework.Entities.ApiResource apiEntity = null;
+            IdentityServer4.Models.ApiResource apiModel = this.InputObject;
+            IdentityServer4.EntityFramework.Entities.ApiResource apiEntity = null;
 
-                if (apiModel is null)
+            if (apiModel is null)
+            {
+                apiEntity = this.QueryApiResource().SingleOrDefault(c => c.Name == this.Name);
+                if (apiEntity is null)
                 {
-                    apiEntity = this.QueryApiResource().SingleOrDefault(c => c.Name == this.Name);
-                    if (apiEntity is null)
-                    {
-                        apiModel = this.SetBoundParameters(new IdentityServer4.Models.ApiResource());
-                        this.Context.ApiResources.Add(apiModel.ToEntity());
-                    }
-                    else
-                    {
-                        apiModel = this.SetBoundParameters(apiEntity.ToModel());
-                        apiModel.ToEntity(apiEntity);
-                    }
+                    apiModel = this.SetBoundParameters(new IdentityServer4.Models.ApiResource());
+                    this.Context.ApiResources.Add(apiModel.ToEntity());
                 }
                 else
                 {
-                    apiEntity = this.QueryApiResource().SingleOrDefault(c => c.Name == this.Name);
-                    this.SetBoundParameters(apiModel);
+                    apiModel = this.SetBoundParameters(apiEntity.ToModel());
                     apiModel.ToEntity(apiEntity);
                 }
-
-                this.Context.SaveChanges();
-                this.WriteObject(apiModel);
             }
+            else
+            {
+                apiEntity = this.QueryApiResource().SingleOrDefault(c => c.Name == this.Name);
+                this.SetBoundParameters(apiModel);
+                apiModel.ToEntity(apiEntity);
+            }
+
+            this.Context.SaveChanges();
+            this.WriteObject(apiModel);
         }
 
         private IdentityServer4.Models.ApiResource SetBoundParameters(IdentityServer4.Models.ApiResource apiModel)

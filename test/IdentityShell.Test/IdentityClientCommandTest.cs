@@ -310,15 +310,16 @@ namespace IdentityShell.Test
         public void IdentityShell_modifies_piped_client()
         {
             var clientSecretExpiration = DateTime.Now;
-            var pso = ArrangeClient(clientSecretExpiration);
+            ArrangeClient(clientSecretExpiration);
 
             // ACT
 
             this.PowerShell
+                .AddCommand("Get-IdentityClient")
                 .AddCommand("Set-IdentityClient")
                     .AddParameter("RequireConsent", false);
 
-            var result = this.PowerShell.Invoke(new[] { pso }).ToArray();
+            var result = this.PowerShell.Invoke().ToArray();
 
             // ASSERT
 
@@ -327,7 +328,6 @@ namespace IdentityShell.Test
             var resultValue = result.Single();
 
             Assert.False(resultValue.Property<bool>("RequireConsent"));
-            Assert.Same(pso.ImmediateBaseObject, resultValue.ImmediateBaseObject);
         }
 
         [Fact]
@@ -361,12 +361,14 @@ namespace IdentityShell.Test
             // ARRANGE
 
             var clientSecretExpiration = DateTime.Now;
-            var pso = ArrangeClient(clientSecretExpiration);
+            ArrangeClient(clientSecretExpiration);
 
             // ACT
 
-            this.PowerShell.AddCommand("Remove-IdentityClient");
-            this.PowerShell.Invoke(new[] { pso });
+            this.PowerShell
+                .AddCommand("Get-IdentityClient")
+                .AddCommand("Remove-IdentityClient");
+            this.PowerShell.Invoke();
 
             // ASSERT
 
