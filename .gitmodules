@@ -1,0 +1,3 @@
+[submodule "src/IdentityServer4"]
+	path = src/IdentityServer4
+	url = https://github.com/IdentityServer/IdentityServer4.git

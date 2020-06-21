@@ -2,47 +2,55 @@
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 using IdentityServer4.EntityFramework.DbContexts;
-using IdentityServer4.EntityFramework.Mappers;
-using IdentityShell.Commands;
+using IdentityShell.Cmdlets;
+using IdentityShell.Cmdlets.Configuration;
+using IdentityShell.IdentityStore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
-using System.Linq;
 using System.Reflection;
 
 namespace IdentityShell
 {
     public class Startup
     {
-        public const string ConnectionString = @"Data Source=(LocalDb)\MSSQLLocalDB;database=IdentityServer4.EFCore;trusted_connection=yes;";
-
         public IWebHostEnvironment Environment { get; }
+
+        public IConfiguration Configuration { get; }
+
         public static IServiceProvider AppServices { get; private set; }
 
-        public Startup(IWebHostEnvironment environment)
+        public Startup(IWebHostEnvironment environment, IConfiguration configuration)
         {
-            Environment = environment;
+            this.Environment = environment;
+            this.Configuration = configuration;
         }
 
         public void ConfigureServices(IServiceCollection services)
         {
             // uncomment, if you want to add an MVC-based UI
-            //services.AddControllersWithViews();
+            services.AddControllersWithViews();
 
             var builder = services
                 .AddIdentityServer()
                 .AddConfigurationStore(options =>
                 {
-                    string migrationAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
+                    // dotnet ef migrations add InitialIdentityServerConfigurationDbMigration -c ConfigurationDbContext -o Data/Migrations/IdentityServer/ConfigurationDb -s ..\IdentityShell\IdentityShell.csproj
+                    string migrationsAssembly = typeof(ApiResourceUpdateMappers).GetTypeInfo().Assembly.GetName().Name;
 
-                    options.ConfigureDbContext = builder => builder.UseSqlServer(ConnectionString, sql => sql.MigrationsAssembly(migrationAssembly));
+                    options.ConfigureDbContext = builder => builder.UseSqlite(this.Configuration.GetConnectionString("ConfigurationStore"), sql => sql.MigrationsAssembly(migrationsAssembly));
+                })
+                .AddOperationalStore(options =>
+                {
+                    // dotnet ef migrations add InitialIdentityServerPersistedGrantDbMigration -c PersistedGrantDbContext -o Data/Migrations/IdentityServer/PersistedGrantDb -s ..\IdentityShell\IdentityShell.csproj
+                    string migrationsAssembly = typeof(ApiResourceUpdateMappers).GetTypeInfo().Assembly.GetName().Name;
+
+                    options.ConfigureDbContext = b => b.UseSqlite(this.Configuration.GetConnectionString("OperationalStore"), sql => sql.MigrationsAssembly(migrationsAssembly));
                 });
-            //.AddInMemoryIdentityResources(Config.Ids)
-            //.AddInMemoryApiResources(Config.Apis)
-            //.AddInMemoryClients(Config.Clients);
 
             // not recommended for production - you need to store your key material somewhere secure
             builder.AddDeveloperSigningCredential();
@@ -52,61 +60,36 @@ namespace IdentityShell
         {
             if (Environment.IsDevelopment())
             {
-                this.InitializeDatabase(app);
                 app.UseDeveloperExceptionPage();
             }
+            this.InitializeDatabase(app);
 
             // uncomment if you want to add MVC
-            //app.UseStaticFiles();
-            //app.UseRouting();
+            app.UseStaticFiles();
+            app.UseRouting();
 
             app.UseIdentityServer();
 
             // uncomment, if you want to add MVC
-            //app.UseAuthorization();
-            //app.UseEndpoints(endpoints =>
-            //{
-            //    endpoints.MapDefaultControllerRoute();
-            //});
+            app.UseAuthorization();
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapDefaultControllerRoute();
+            });
             AppServices = app.ApplicationServices;
 
             // inject the scoipe factory in the cmdlet base class
-            IdentityCommandBase.ServiceProvider = app.ApplicationServices;
+            IdentityConfigurationCommandBase.GlobalServiceProvider = app.ApplicationServices;
         }
 
         private void InitializeDatabase(IApplicationBuilder app)
         {
             using var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope();
-            using var context = serviceScope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
+            using var configurationContext = serviceScope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
+            using var operationalContext = serviceScope.ServiceProvider.GetRequiredService<PersistedGrantDbContext>();
 
-            context.Database.Migrate();
-
-            if (!context.Clients.Any())
-            {
-                foreach (var client in Config.Clients)
-                {
-                    context.Clients.Add(client.ToEntity());
-                }
-                context.SaveChanges();
-            }
-
-            if (!context.IdentityResources.Any())
-            {
-                foreach (var resource in Config.Ids)
-                {
-                    context.IdentityResources.Add(resource.ToEntity());
-                }
-                context.SaveChanges();
-            }
-
-            if (!context.ApiResources.Any())
-            {
-                foreach (var resource in Config.Apis)
-                {
-                    context.ApiResources.Add(resource.ToEntity());
-                }
-                context.SaveChanges();
-            }
+            configurationContext.Database.Migrate();
+            operationalContext.Database.Migrate();
         }
     }
 }

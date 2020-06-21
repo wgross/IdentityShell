@@ -1,7 +1,8 @@
 ﻿// Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
-using IdentityShell.Commands;
+using IdentityShell.Cmdlets.Configuration;
+using IdentityShell.Cmdlets.Operation;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Microsoft.PowerShell;
@@ -44,7 +45,8 @@ namespace IdentityShell
 
                 var iss = InitialSessionState
                     .CreateDefault()
-                    .AddIdentityCommands();
+                    .AddIdentityConfigurationCommands()
+                    .AddIdentityOperationCommands();
 
                 iss.Variables.Add(new SessionStateVariableEntry("webHostTask", webHostTask, "Task executing the webhost"));
                 ConsoleShell.Start(iss, "IdentityShell", "", args);
