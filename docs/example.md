@@ -34,7 +34,7 @@ UserClaims  : {}
 Properties  : {}
 ```
 
-## (Defining the Client)[https://docs.identityserver.io/en/latest/quickstarts/1_client_credentials.html#defining-the-client]
+## [Defining a Client](https://docs.identityserver.io/en/latest/quickstarts/1_client_credentials.html#defining-the-client)
 
 The identity server tutorial uses the word "secret" hashed as SHA-256. For hashing the secret in powershell copy&paste the filter function below to your console.
 
