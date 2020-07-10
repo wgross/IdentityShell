@@ -150,19 +150,12 @@ Properties                        : {}
 ```
 The protocol flow for client credential authentication is shown in [example-client-credentials.rest](examples/example-client-credentials.rest). Use this file with a [Visual Studio Code REST client extension](https://marketplace.visualstudio.com/items?itemName=humao.rest-client).
 
-# [Interactive Applications](https://docs.identityserver.io/en/latest/quickstarts/2_interactive_aspnetcore.html)
-
-Interactive applications require a user to be authenticated. This may be used together with the client credential flow. 
-
-## [Adding Test Users](https://docs.identityserver.io/en/latest/quickstarts/2_interactive_aspnetcore.html#adding-test-users)
-
-The interactive use will at least contain a unique user name and a secret. The users are stored persistently in an identity store defined by the 
-[provided nuget package](https://www.nuget.org/packages/Microsoft.AspNetCore.Identity/).
-
 # [Protecting an API using Passwords an Resource Owner Flow](http://docs.identityserver.io/en/stable/quickstarts/2_resource_owner_passwords.html#)
 
 This scenario grants access to a interative use at a client software uncapable of using a web page as login dialog like a fat client or example.
-We assume the client configuration from above. The lines above set the allowed grants including resource owner flow:
+The users are stored persistently in an identity store defined by the 
+[provided nuget package](https://www.nuget.org/packages/Microsoft.AspNetCore.Identity/).
+We assume the client configuration from above. The lines below set the allowed grants including resource owner flow:
 ```powershell
 PS> $client=Get-IdentityClient 
 PS> $client|Set-IdentityClient -AllowedGrantTypes client_credentials,ResourceOwnerPassword,DeviceFlow
