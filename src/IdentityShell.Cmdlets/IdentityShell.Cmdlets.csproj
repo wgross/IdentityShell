@@ -12,4 +12,9 @@
     <PackageReference Include="System.Management.Automation" Version="7.0.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\IdentityServer4\src\IdentityServer4\src\IdentityServer4.csproj" />
+    <ProjectReference Include="..\IdentityShell.AspNetIdentityStore\IdentityShell.AspNetIdentityStore.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -1,11 +1,12 @@
-The following documentation mirrors the IdentityServer4 [Quickstart documentation](https://docs.identityserver.io/en/latest/quickstarts/0_overview.html). It shows how the same configuration can be dine using the interactive IdentityShells cmdlets.
+The following documentation follows the IdentityServer4 [Quickstart documentation](https://docs.identityserver.io/en/latest/quickstarts/0_overview.html) throug several authentication scenarios. It shows how the necessary configuration can be done by the IdentityShells cmdlets. It also provides HTTP requests to be tried opt in VS Codes Rest client to interact with the endpoints of the identity server.
 
 # [Protecting an API using Client Credentials](https://identityserver4.readthedocs.io/en/latest/quickstarts/1_client_credentials.html)
 
+This protocol flow is used to grant access to client (a piece of software) identified by a unique client id and a client secret to api resources.
+
 ## [Defining an API Resource](https://docs.identityserver.io/en/latest/quickstarts/1_client_credentials.html#defining-an-api-resource)
 
-The powershell cmdlets below add an api default scope. But since every API has to have at least scope 
-you must add one here to make the API accesible.
+The powershell cmdlets below add an api default scope. Every API has to have at least one scope:
 
 ```powershell
 PS> Set-IdentityApiResource -Name api1 -DisplayName "My Api" -Scopes (New-IdentityScope -Name api1)
@@ -19,7 +20,7 @@ Description :
 UserClaims  : {}
 Properties  : {}
 ```
-To inspect the API resources letering you may also us the Get-IdentityApiResource cmdlet:
+To inspect the API resources you may also us the Get-IdentityApiResource cmdlet:
 ```powershell
 PS> Get-IdentityApiResource
 
@@ -35,7 +36,7 @@ Properties  : {}
 
 ## [Defining the Client](https://docs.identityserver.io/en/latest/quickstarts/1_client_credentials.html#defining-the-client)
 
-The identity server tutorial uses the word "secret" hashed as SHA-256. To repeat this in powershell copy&paste the filter function below to your console.
+The identity server tutorial uses the word "secret" hashed as SHA-256. To has the secret in powershell copy&paste the filter function below to your console first.
 
 ```powershell
 filter sha256base64 {
@@ -44,7 +45,7 @@ filter sha256base64 {
     [System.Convert]::ToBase64String($hash)
 }
 ```
-Now we can create the ClientSecret and the Client habving a properly hashed secret:
+Now the clinet can be created with a properly hashed client secret:
 ```powershell
 PS> $secrethash = "secret"|sha256base64
 PS> Set-IdentityClient -ClientId client -AllowedGrantTypes ClientCredentials -ClientSecrets (New-IdentitySecret -Value $secrethash) -AllowedScopes "api1"
@@ -96,8 +97,7 @@ DeviceCodeLifetime                : 300
 AllowedCorsOrigins                : {}
 Properties                        : {}
 ```
-To inspect the clients lateron you may also use the cmdlet Get-IdentityClient:
-
+To inspect the client use the cmdlet Get-IdentityClient:
 ```powershell
 PS> Get-IdentityClient
 
@@ -152,17 +152,74 @@ The protocol flow for client credential authentication is documented in "example
 
 # [Interactive Applications](https://docs.identityserver.io/en/latest/quickstarts/2_interactive_aspnetcore.html)
 
-## [Adding support for OpenID Connect Identity Scopes](https://docs.identityserver.io/en/latest/quickstarts/2_interactive_aspnetcore.html#adding-support-for-openid-connect-identity-scopes)
+Interactive applications require a user to be authticated. This may be used together with the client credential flow. 
 
-To go through this example scenario we extend the api configuration above with identity resources. 
-IdentityServer4.Models contains already some predefined OpenId resources which we now add to the configuration store. IdentiyShell can acess these classes $directly:
+## [Adding Test Users](https://docs.identityserver.io/en/latest/quickstarts/2_interactive_aspnetcore.html#adding-test-users)
 
+The interactive use will at leat contain a uique user name and a secret. The users are stored persistently in an identity store defined by the 
+(provided nuget package)[https://www.nuget.org/packages/Microsoft.AspNetCore.Identity/].
 
+# [Protecting an API using Passwords an Respurce Owner Flow](http://docs.identityserver.io/en/stable/quickstarts/2_resource_owner_passwords.html#)
+
+This scenaropo can be used to grant access to a client which hasn't teh capability to useing a web page as login dialog like a fat client.
+We assume the client configuration from above. The lines above set the allowed grants including resource owner flow:
 ```powershell
-[IdentityServer4.Models.IdentityResources+OpenId]::new() | Set-IdentityResource 
-[IdentityServer4.Models.IdentityResources+Profile]::new() | Set-IdentityResource
+PS> $client=Get-IdentityClient 
+PS> $client|Set-IdentityClient -AllowedGrantTypes client_credentials,ResourceOwnerPassword,DeviceFlow
+```
+ New a user is required from the AspNetIdentity example:
+```powershell
+PS> Set-AspNetIdentityUser -UserName alice -NewPassword "Pass123$"
+```
+To inspect the users use cmdlet Get-AspNetIdentityUser:
+```powershell
+PS> Get-AspNetIdentityUser
+
+Id                   : acf41cc1-e964-4569-b3a2-79cce4d99bcf
+UserName             : alice
+NormalizedUserName   : ALICE
+Email                :
+NormalizedEmail      :
+EmailConfirmed       : False
+PasswordHash         : AQAAAAEAACcQAAAAEAP0awBMegucMtMX0e3YSvQ5SX8f+nYzuT1Zb8nUrbx0bfoUZxhcEy5TUJYzVFDVeQ==
+SecurityStamp        : VHBZUWN4WMXKMROQLA5HV7TXRBLC7OGH
+ConcurrencyStamp     : 4c175ef9-21fd-455f-a2fc-823df60186a8
+PhoneNumber          :
+PhoneNumberConfirmed : False
+TwoFactorEnabled     : False
+LockoutEnd           :
+LockoutEnabled       : True
+AccessFailedCount    : 0
+```
+Setting the uses properties form Abpve doesn't implicitely create claims for the user of the same semantic. This must be done independently:
+If you chose to enter these claims by and or modifiying them you will see that the arguments 'Type' and 'ValueType' provide argument completion for known values.
+```powershell
+PS> $claims = @(
+        New-Claim -Type Name -Value "Alice Smith"
+        New-Claim -Type GivenName -Value "Alice"
+        New-Claim -Type FamilyName -Value "Smith"
+        New-Claim -Type Email -Value "AliceSmith@email.com"
+        New-Claim -Type EmailVerified -Value true -ValueType Boolean
+        New-Claim -Type WebSite -Value "http://alice.com"
+    )
+
+PS> $claims|Set-AspNetIdentityUserClaim -UserName alice 
+```
+To check the claims invoke the cmdlet Get-AspNetIdentityUserClaim:
+```powershell
+PS> Get-AspNetIdentityUserClaim -UserName alice
+```
+The configuraton is now finsihed. Please refer to examples/example-resource-owner.rest for the HTTP messages the client sends during this protocol flow.
+
+## Getting information about the logged in User
+
+OpenId defines an endoint to retrieve information about the logged in user. To prepare this teh default open id scopes 'openid' and 'profile' 
+have to present in as an identity resource. Thes ecan be creates directly from the identit serves model:
+```powershell
+PS> [IdentityServer4.Models.IdentityResources+OpenId]::new() | Set-IdentityResource 
+PS> [IdentityServer4.Models.IdentityResources+Profile]::new() | Set-IdentityResource
 ``` 
-To inspect the added identity resources enter Get-IdentityResoure:
+To inspect the added identity resources use cmdlet Get-IdentityResoure:
 ```powershell
 PS> Get-IdentityResource
 
@@ -186,8 +243,11 @@ Description             : Your user profile information (first name, last name, 
 UserClaims              : {name, family_name, given_name, middle_name...}
 Properties              : {}
 ```
-
-## [Adding Test Users](https://docs.identityserver.io/en/latest/quickstarts/2_interactive_aspnetcore.html#adding-test-users)
+Add the scopes names to the allowed scopes of the client:
+```powershell
+PS> Set-IdentityClient -ClientId client -AllowedScopes api1,openid,profile
+```
+If the token-request asks for access to the scopes "openid" and "profile" the user-info endpoint will return all claims defined in idnetity resources openid and profile. The extended respource owner example in examples/example-resource-owner-userinfo.rest shows http requests.
 
 ## Enabling Device Flow 
 

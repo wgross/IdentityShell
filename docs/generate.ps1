@@ -39,6 +39,7 @@ filter sha256base64 {
     $hash = [System.Security.Cryptography.HashAlgorithm]::Create("SHA256").ComputeHash($bytes)
     [System.Convert]::ToBase64String($hash)
 }
+
 var bytes = Encoding.UTF8.GetBytes(input);
 var hash = sha.ComputeHash(bytes);
 

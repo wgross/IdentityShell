@@ -106,8 +106,22 @@ namespace IdentityShell.Test
 
         public static PowerShellCallBuilder<T> AddCommand<T>(this PowerShell ps) where T : PSCmdlet
         {
-            var cmdlet = typeof(T).GetCustomAttributes(false).Single(a => a.GetType() == typeof(CmdletAttribute));
-            return new PowerShellCallBuilder<T>(ps.AddCommand($"{cmdlet.TryGetPropertyValue<string>(nameof(CmdletAttribute.VerbName))}-{cmdlet.TryGetPropertyValue<string>(nameof(CmdletAttribute.NounName))}"));
+            return NewCommandBuilder<T>(ps);
+        }
+
+        public static PowerShell AddCommandEx<T>(this PowerShell powerShell, Action<PowerShellCallBuilder<T>> cmdBuilder = null) where T : PSCmdlet
+        {
+            PowerShellCallBuilder<T> builder = NewCommandBuilder<T>(powerShell);
+            cmdBuilder?.Invoke(builder);
+            return powerShell;
+        }
+
+        private static PowerShellCallBuilder<T> NewCommandBuilder<T>(PowerShell ps) where T : PSCmdlet
+        {
+            var cmdletAttribute = typeof(T).GetCustomAttributes(false).Single(a => a.GetType() == typeof(CmdletAttribute));
+            return new PowerShellCallBuilder<T>(
+               powershell: ps.AddCommand(
+                   cmdlet: $"{cmdletAttribute.TryGetPropertyValue<string>(nameof(CmdletAttribute.VerbName))}-{cmdletAttribute.TryGetPropertyValue<string>(nameof(CmdletAttribute.NounName))}"));
         }
     }
 }

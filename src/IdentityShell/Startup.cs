@@ -2,11 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 using IdentityServer4.EntityFramework.DbContexts;
-using IdentityShell.Cmdlets;
+using IdentityServerAspNetIdentity.Data;
+using IdentityServerAspNetIdentity.Models;
 using IdentityShell.Cmdlets.Configuration;
 using IdentityShell.IdentityStore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,6 +37,16 @@ namespace IdentityShell
             // uncomment, if you want to add an MVC-based UI
             services.AddControllersWithViews();
 
+            services
+                .AddDbContext<ApplicationDbContext>(options =>
+                {
+                    // dotnet ef migrations add CreateIdentitySchema -c ApplicationDbContext -o Data/Migrations -s ..\IdentityShell\IdentityShell.csproj
+                    options.UseSqlite(Configuration.GetConnectionString("UserStore"));
+                })
+                .AddIdentity<ApplicationUser, IdentityRole>()
+                .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddDefaultTokenProviders();
+
             var builder = services
                 .AddIdentityServer()
                 .AddConfigurationStore(options =>
@@ -50,7 +62,8 @@ namespace IdentityShell
                     string migrationsAssembly = typeof(ApiResourceUpdateMappers).GetTypeInfo().Assembly.GetName().Name;
 
                     options.ConfigureDbContext = b => b.UseSqlite(this.Configuration.GetConnectionString("OperationalStore"), sql => sql.MigrationsAssembly(migrationsAssembly));
-                });
+                })
+                .AddAspNetIdentity<ApplicationUser>();
 
             // not recommended for production - you need to store your key material somewhere secure
             builder.AddDeveloperSigningCredential();
@@ -87,9 +100,11 @@ namespace IdentityShell
             using var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope();
             using var configurationContext = serviceScope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
             using var operationalContext = serviceScope.ServiceProvider.GetRequiredService<PersistedGrantDbContext>();
+            using var userContext = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
             configurationContext.Database.Migrate();
             operationalContext.Database.Migrate();
+            userContext.Database.Migrate();
         }
     }
 }

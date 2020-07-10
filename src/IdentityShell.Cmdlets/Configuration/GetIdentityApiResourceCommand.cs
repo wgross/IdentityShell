@@ -12,10 +12,10 @@ namespace IdentityShell.Cmdlets
     {
         protected override void ProcessRecord()
         {
-            this.LocalServiceProvider
-                .GetRequiredService<IResourceStore>()
-                .GetAllResourcesAsync()
-                .Result
+            this.AwaitResult(
+                this.LocalServiceProvider
+                    .GetRequiredService<IResourceStore>()
+                    .GetAllResourcesAsync())
                 .ApiResources
                 .ToList()
                 .ForEach(api => this.WriteObject(api));

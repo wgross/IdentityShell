@@ -5,12 +5,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation;
+using System.Threading.Tasks;
 
 namespace IdentityShell.Cmdlets
 {
     public abstract class IdentityCommandBase : PSCmdlet
     {
         public static IServiceProvider GlobalServiceProvider { protected get; set; }
+
+        protected T AwaitResult<T>(Task<T> task) => task.GetAwaiter().GetResult();
+
+        protected static ICollection<string> Collection(object[] items) => items.Select(i => i.ToString()).ToHashSet();
     }
 
     public abstract class IdentityCommandBase<CTX> : IdentityCommandBase
@@ -27,8 +32,6 @@ namespace IdentityShell.Cmdlets
             this.Context.Dispose();
             this.Context = null;
         }
-
-        protected static ICollection<string> Collection(object[] items) => items.Select(i => i.ToString()).ToHashSet();
 
         protected T PSArgumentCast<T>(object argumentValue)
         {

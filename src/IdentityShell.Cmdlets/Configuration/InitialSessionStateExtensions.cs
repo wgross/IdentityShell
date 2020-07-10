@@ -21,7 +21,6 @@ namespace IdentityShell.Cmdlets.Configuration
             sessionState.Commands.Add(new SessionStateCmdletEntry("Remove-IdentityApiResource", typeof(RemoveIdentityApiResourceCommand), string.Empty));
 
             sessionState.Commands.Add(new SessionStateCmdletEntry("New-IdentitySecret", typeof(NewIdentitySecretCommand), string.Empty));
-            sessionState.Commands.Add(new SessionStateCmdletEntry("New-IdentityClaim", typeof(NewIdentityClaimCommand), string.Empty));
             sessionState.Commands.Add(new SessionStateCmdletEntry("New-IdentityScope", typeof(NewIdentityScopeCommand), string.Empty));
             return sessionState;
         }

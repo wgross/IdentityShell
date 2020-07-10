@@ -52,7 +52,7 @@ namespace IdentityShell.Test.Operation
             this.serviceProvider
                 .CreateScope()
                     .ServiceProvider
-                    .GetRequiredService<ConfigurationDbContext>()
+                    .GetRequiredService<PersistedGrantDbContext>()
                         .Database
                         .EnsureDeleted();
         }
