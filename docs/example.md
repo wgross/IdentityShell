@@ -1,10 +1,10 @@
-The following documentation follows the IdentityServer4 [Quickstart documentation](https://docs.identityserver.io/en/latest/quickstarts/0_overview.html) throug several authentication scenarios. It shows how the necessary configuration can be done by the IdentityShells cmdlets. It also provides HTTP requests to be tried opt in VS Codes Rest client to interact with the endpoints of the identity server.
+The following documentation follows the IdentityServer4 [Quickstart documentation](https://docs.identityserver.io/en/latest/quickstarts/0_overview.html) through several authentication scenarios. It shows how the necessary configuration can be done with the IdentityShells cmdlets. It also provides HTTP requests examples usable with VS Codes Rest client to interact with the endpoints of the identity server.
 
-# [Protecting an API using Client Credentials](https://identityserver4.readthedocs.io/en/latest/quickstarts/1_client_credentials.html)
+# (Protecting an API using Client Credentials)[https://identityserver4.readthedocs.io/en/latest/quickstarts/1_client_credentials.html]
 
 This protocol flow is used to grant access to client (a piece of software) identified by a unique client id and a client secret to api resources.
 
-## [Defining an API Resource](https://docs.identityserver.io/en/latest/quickstarts/1_client_credentials.html#defining-an-api-resource)
+## (Defining an API Resource)[https://docs.identityserver.io/en/latest/quickstarts/1_client_credentials.html#defining-an-api-resource]
 
 The powershell cmdlets below add an api default scope. Every API has to have at least one scope:
 
@@ -20,7 +20,7 @@ Description :
 UserClaims  : {}
 Properties  : {}
 ```
-To inspect the API resources you may also us the Get-IdentityApiResource cmdlet:
+To inspect the API resources use the Get-IdentityApiResource cmdlet:
 ```powershell
 PS> Get-IdentityApiResource
 
@@ -36,7 +36,7 @@ Properties  : {}
 
 ## [Defining the Client](https://docs.identityserver.io/en/latest/quickstarts/1_client_credentials.html#defining-the-client)
 
-The identity server tutorial uses the word "secret" hashed as SHA-256. To has the secret in powershell copy&paste the filter function below to your console first.
+The identity server tutorial uses the word "secret" hashed as SHA-256. For hashing the secret in powershell copy&paste the filter function below to your console.
 
 ```powershell
 filter sha256base64 {
@@ -45,7 +45,7 @@ filter sha256base64 {
     [System.Convert]::ToBase64String($hash)
 }
 ```
-Now the clinet can be created with a properly hashed client secret:
+Now the client can be created with a properly hashed client secret:
 ```powershell
 PS> $secrethash = "secret"|sha256base64
 PS> Set-IdentityClient -ClientId client -AllowedGrantTypes ClientCredentials -ClientSecrets (New-IdentitySecret -Value $secrethash) -AllowedScopes "api1"
