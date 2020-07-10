@@ -1,10 +1,10 @@
 The following documentation follows the IdentityServer4 [Quickstart documentation](https://docs.identityserver.io/en/latest/quickstarts/0_overview.html) through several authentication scenarios. It shows how the necessary configuration can be done with the IdentityShells cmdlets. It also provides HTTP requests examples usable with VS Codes Rest client to interact with the endpoints of the identity server.
 
-# (Protecting an API using Client Credentials)[https://identityserver4.readthedocs.io/en/latest/quickstarts/1_client_credentials.html]
+# [Protecting an API using Client Credentials](https://identityserver4.readthedocs.io/en/latest/quickstarts/1_client_credentials.html)
 
-This protocol flow is used to grant access to client (a piece of software) identified by a unique client id and a client secret to api resources.
+This protocol flow is used to grant access to a client software identified by a unique client id and a client secret to api resources.
 
-## (Defining an API Resource)[https://docs.identityserver.io/en/latest/quickstarts/1_client_credentials.html#defining-an-api-resource]
+## [Defining an API Resource](https://docs.identityserver.io/en/latest/quickstarts/1_client_credentials.html#defining-an-api-resource)
 
 The powershell cmdlets below add an api default scope. Every API has to have at least one scope:
 
@@ -34,7 +34,7 @@ UserClaims  : {}
 Properties  : {}
 ```
 
-## [Defining the Client](https://docs.identityserver.io/en/latest/quickstarts/1_client_credentials.html#defining-the-client)
+## (Defining the Client)[https://docs.identityserver.io/en/latest/quickstarts/1_client_credentials.html#defining-the-client]
 
 The identity server tutorial uses the word "secret" hashed as SHA-256. For hashing the secret in powershell copy&paste the filter function below to your console.
 
@@ -148,26 +148,26 @@ DeviceCodeLifetime                : 300
 AllowedCorsOrigins                : {}
 Properties                        : {}
 ```
-The protocol flow for client credential authentication is documented in "examples/example-client-credentials.rest". Use this file with a [Visual Studio Code REST client extension](see: https://marketplace.visualstudio.com/items?itemName=humao.rest-client).
+The protocol flow for client credential authentication is shown in [example-client-credentials.rest](examples/example-client-credentials.rest). Use this file with a [Visual Studio Code REST client extension](https://marketplace.visualstudio.com/items?itemName=humao.rest-client).
 
 # [Interactive Applications](https://docs.identityserver.io/en/latest/quickstarts/2_interactive_aspnetcore.html)
 
-Interactive applications require a user to be authticated. This may be used together with the client credential flow. 
+Interactive applications require a user to be authenticated. This may be used together with the client credential flow. 
 
 ## [Adding Test Users](https://docs.identityserver.io/en/latest/quickstarts/2_interactive_aspnetcore.html#adding-test-users)
 
-The interactive use will at leat contain a uique user name and a secret. The users are stored persistently in an identity store defined by the 
-(provided nuget package)[https://www.nuget.org/packages/Microsoft.AspNetCore.Identity/].
+The interactive use will at least contain a unique user name and a secret. The users are stored persistently in an identity store defined by the 
+[provided nuget package](https://www.nuget.org/packages/Microsoft.AspNetCore.Identity/).
 
-# [Protecting an API using Passwords an Respurce Owner Flow](http://docs.identityserver.io/en/stable/quickstarts/2_resource_owner_passwords.html#)
+# [Protecting an API using Passwords an Resource Owner Flow](http://docs.identityserver.io/en/stable/quickstarts/2_resource_owner_passwords.html#)
 
-This scenaropo can be used to grant access to a client which hasn't teh capability to useing a web page as login dialog like a fat client.
+This scenario grants access to a interative use at a client software uncapable of using a web page as login dialog like a fat client or example.
 We assume the client configuration from above. The lines above set the allowed grants including resource owner flow:
 ```powershell
 PS> $client=Get-IdentityClient 
 PS> $client|Set-IdentityClient -AllowedGrantTypes client_credentials,ResourceOwnerPassword,DeviceFlow
 ```
- New a user is required from the AspNetIdentity example:
+ Now a user is required from the AspNetIdentity example:
 ```powershell
 PS> Set-AspNetIdentityUser -UserName alice -NewPassword "Pass123$"
 ```
@@ -191,8 +191,8 @@ LockoutEnd           :
 LockoutEnabled       : True
 AccessFailedCount    : 0
 ```
-Setting the uses properties form Abpve doesn't implicitely create claims for the user of the same semantic. This must be done independently:
-If you chose to enter these claims by and or modifiying them you will see that the arguments 'Type' and 'ValueType' provide argument completion for known values.
+Setting the users properties doesn't implicitely create claims for the user of the same semantic. This must be done independently.
+If you create these claims you will see that the arguments 'Type' and 'ValueType' provide argument completion for known values.
 ```powershell
 PS> $claims = @(
         New-Claim -Type Name -Value "Alice Smith"
@@ -209,7 +209,7 @@ To check the claims invoke the cmdlet Get-AspNetIdentityUserClaim:
 ```powershell
 PS> Get-AspNetIdentityUserClaim -UserName alice
 ```
-The configuraton is now finsihed. Please refer to examples/example-resource-owner.rest for the HTTP messages the client sends during this protocol flow.
+The configuraton is now finsihed. Please refer to [example-resource-owner.rest](examples/example-resource-owner.rest) for the HTTP messages the client sends during this protocol flow.
 
 ## Getting information about the logged in User
 
@@ -247,12 +247,11 @@ Add the scopes names to the allowed scopes of the client:
 ```powershell
 PS> Set-IdentityClient -ClientId client -AllowedScopes api1,openid,profile
 ```
-If the token-request asks for access to the scopes "openid" and "profile" the user-info endpoint will return all claims defined in idnetity resources openid and profile. The extended respource owner example in examples/example-resource-owner-userinfo.rest shows http requests.
+If the token-request asks for access to the scopes "openid" and "profile" the user-info endpoint will return all claims defined in identity resources openid and profile. The extended respource owner example in [example-resource-owner-userinfo.rest](examples/example-resource-owner-userinfo.rest) shows HTTP requests.
 
 ## Enabling Device Flow 
 
-To enable devioce flow at the previously created client i'm adding the device flow grant type to the list of allowed grant types. The Set-IdentiyClient cmdlet, may be used to replace the grant type list with a new one:
-
+To enable device flow at the previously created client the device flow grant type must be added to the list of allowed grant types:
 ```powershell
 PS> Set-IdentityClient -ClientId "client" -AllowedGrantTypes client_credentials,urn:ietf:params:oauth:grant-type:device_code
 
@@ -260,7 +259,7 @@ PS> Set-IdentityClient -ClientId "client" -AllowedGrantTypes client_credentials,
 AllowedGrantTypes                 : {client_credentials, urn:ietf:params:oauth:grant-type:device_code}
 ...
 ```
-Now the endpoints of the identity server can be called as described in the example 'example-device-authorization.rest'. The result wil contain the device code and the user code of the issued token.
+Now the endpoints of the identity server can be called as shown in the example (example-device-authorization.rest)[examples/example-device-authorization.rest]. The result wil contain the device code and the user code of the issued token.
 
 IdentityShell provide cmdlets to inspect the operational store. Like the client secret the user code and te device code are not stored in clear text. The are again hash with SHA-256. Utilize the function sha256base64 fro aboev ahaint to mke a usable value
 ```powershell
