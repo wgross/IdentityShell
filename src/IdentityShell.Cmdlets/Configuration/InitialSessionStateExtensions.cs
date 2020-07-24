@@ -8,6 +8,11 @@ namespace IdentityShell.Cmdlets.Configuration
         public static InitialSessionState AddIdentityConfigurationCommands(this InitialSessionState sessionState)
         {
             sessionState.ExecutionPolicy = ExecutionPolicy.Unrestricted;
+
+            sessionState.Commands.Add(new SessionStateCmdletEntry("Set-IdentityApiScope", typeof(SetIdentityApiScopeCommand), string.Empty));
+            sessionState.Commands.Add(new SessionStateCmdletEntry("Get-IdentityApiScope", typeof(GetIdentityApiScopeCommand), string.Empty));
+            sessionState.Commands.Add(new SessionStateCmdletEntry("Remove-IdentityApiScope", typeof(RemoveIdentityApiScopeCommand), string.Empty));
+
             sessionState.Commands.Add(new SessionStateCmdletEntry("Get-IdentityClient", typeof(GetIdentityClientCommand), string.Empty));
             sessionState.Commands.Add(new SessionStateCmdletEntry("Set-IdentityClient", typeof(SetIdentityClientCommand), string.Empty));
             sessionState.Commands.Add(new SessionStateCmdletEntry("Remove-IdentityClient", typeof(RemoveIdentityClientCommand), string.Empty));

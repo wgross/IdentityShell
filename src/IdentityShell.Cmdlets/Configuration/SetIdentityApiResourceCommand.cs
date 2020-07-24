@@ -37,7 +37,7 @@ namespace IdentityShell.Cmdlets.Configuration
         public object[] ApiSecrets { get; set; }
 
         [Parameter()]
-        public object[] Scopes { get; set; }
+        public string[] Scopes { get; set; }
 
         protected override void ProcessRecord()
         {
@@ -81,39 +81,39 @@ namespace IdentityShell.Cmdlets.Configuration
 
         private IdentityServer4.Models.ApiResource SetBoundParameters(IdentityServer4.Models.ApiResource apiModel)
         {
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(Enabled)))
+            if (this.IsParameterBound(nameof(Enabled)))
             {
                 apiModel.Enabled = this.Enabled;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(Name)))
+            if (this.IsParameterBound(nameof(Name)))
             {
                 apiModel.Name = this.Name;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(DisplayName)))
+            if (this.IsParameterBound(nameof(DisplayName)))
             {
                 apiModel.DisplayName = this.DisplayName;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(Description)))
+            if (this.IsParameterBound(nameof(Description)))
             {
                 apiModel.Description = this.Description;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(UserClaims)))
+            if (this.IsParameterBound(nameof(UserClaims)))
             {
                 apiModel.UserClaims = Collection(this.UserClaims);
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(Properties)))
+            if (this.IsParameterBound(nameof(Properties)))
             {
                 apiModel.Properties = this.Properties
                     .OfType<DictionaryEntry>()
                     .ToDictionary(keySelector: d => d.Key.ToString(), elementSelector: d => d.Value.ToString());
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(ApiSecrets)))
+            if (this.IsParameterBound(nameof(ApiSecrets)))
             {
-                apiModel.ApiSecrets = this.ApiSecrets.Select(s => this.PSArgumentCast<Secret>(s)).ToList();
+                apiModel.ApiSecrets = this.ApiSecrets.Select(s => PSArgumentValue<Secret>(s)).ToList();
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(Scopes)))
+            if (this.IsParameterBound(nameof(Scopes)))
             {
-                apiModel.Scopes = this.Scopes.Select(s => this.PSArgumentCast<Scope>(s)).ToList();
+                apiModel.Scopes = this.Scopes.Select(s => PSArgumentValue<string>(s)).ToList();
             }
 
             this.ValidateNullability(apiModel);

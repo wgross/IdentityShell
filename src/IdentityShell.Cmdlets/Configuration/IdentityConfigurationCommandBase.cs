@@ -1,6 +1,8 @@
 ﻿using IdentityServer4.EntityFramework.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace IdentityShell.Cmdlets.Configuration
@@ -29,6 +31,24 @@ namespace IdentityShell.Cmdlets.Configuration
 
             return query;
         }
+
+        protected IQueryable<IdentityServer4.EntityFramework.Entities.ApiScope> QueryApiScopes()
+        {
+            var query = Context.ApiScopes.AsQueryable();
+
+            query.Include(x => x.UserClaims).SelectMany(c => c.UserClaims).Load();
+            query.Include(x => x.Properties).SelectMany(c => c.Properties).Load();
+
+            return query;
+        }
+
+        protected bool IsParameterBound(string parameterName) => this.MyInvocation.BoundParameters.ContainsKey(parameterName);
+
+        protected Dictionary<string, string> ToDictionary(Hashtable hashtable) => hashtable
+            .OfType<DictionaryEntry>()
+            .ToDictionary(
+                keySelector: d => d.Key.ToString(),
+                elementSelector: d => d.Value.ToString());
 
         protected IQueryable<IdentityServer4.EntityFramework.Entities.IdentityResource> QueryIdentityResource()
         {

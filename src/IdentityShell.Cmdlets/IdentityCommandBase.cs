@@ -13,7 +13,7 @@ namespace IdentityShell.Cmdlets
     {
         public static IServiceProvider GlobalServiceProvider { protected get; set; }
 
-        protected T AwaitResult<T>(Task<T> task) => task.GetAwaiter().GetResult();
+        protected static T Await<T>(Task<T> task) => task.GetAwaiter().GetResult();
 
         protected static ICollection<string> Collection(object[] items) => items.Select(i => i.ToString()).ToHashSet();
     }
@@ -33,7 +33,7 @@ namespace IdentityShell.Cmdlets
             this.Context = null;
         }
 
-        protected T PSArgumentCast<T>(object argumentValue)
+        protected static T PSArgumentValue<T>(object argumentValue)
         {
             return argumentValue switch
             {

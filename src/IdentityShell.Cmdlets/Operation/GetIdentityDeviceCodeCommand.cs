@@ -20,7 +20,7 @@ namespace IdentityShell.Cmdlets.Operation
         {
             if (this.ParameterSetName.Equals("byUserCode"))
             {
-                var result = this.AwaitResult(this.LocalServiceProvider
+                var result = Await(this.LocalServiceProvider
                     .GetRequiredService<IDeviceFlowStore>()
                     .FindByUserCodeAsync(this.UserCode));
 
@@ -33,7 +33,7 @@ namespace IdentityShell.Cmdlets.Operation
             }
             else
             {
-                var result = this.AwaitResult(this.LocalServiceProvider
+                var result = Await(this.LocalServiceProvider
                     .GetRequiredService<IDeviceFlowStore>()
                     .FindByDeviceCodeAsync(this.DeviceCode));
 

@@ -1,8 +1,6 @@
 ﻿using IdentityServerAspNetIdentity.Models;
 using System;
-using System.Collections.Generic;
 using System.Management.Automation;
-using System.Security.Claims;
 
 namespace IdentityShell.Cmdlets.AspNetIdentity
 {
@@ -47,7 +45,7 @@ namespace IdentityShell.Cmdlets.AspNetIdentity
 
         protected override void ProcessRecord()
         {
-            var user = this.AwaitResult(this.UserManager.FindByNameAsync(this.UserName));
+            var user = Await(this.UserManager.FindByNameAsync(this.UserName));
 
             if (user is null)
             {

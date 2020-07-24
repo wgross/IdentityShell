@@ -12,10 +12,12 @@ using System.IO;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Reflection;
+using Xunit;
 
 namespace IdentityShell.Test.AspNetIdentity
 {
-    public class AspNetIdentityCommandTestBase
+    [Collection(nameof(ApplicationDbContext))]
+    public abstract class AspNetIdentityCommandTestBase
     {
         private readonly string connectionString;
         private readonly ServiceProvider serviceProvider;

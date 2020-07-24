@@ -21,7 +21,7 @@ namespace IdentityShell.Cmdlets.AspNetIdentity
 
         protected void CheckIdentityResult(Task<IdentityResult> result)
         {
-            var resultValue = this.AwaitResult(result);
+            var resultValue = Await(result);
             if (!resultValue.Succeeded)
                 throw new PSInvalidOperationException(resultValue.Errors.First().Description);
         }

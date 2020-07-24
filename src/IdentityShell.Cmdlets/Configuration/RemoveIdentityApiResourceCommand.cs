@@ -11,7 +11,7 @@ namespace IdentityShell.Cmdlets.Configuration
 
         protected override void ProcessRecord()
         {
-            var apiEntity = this.QueryApiResource().SingleOrDefault(c => c.Name == this.Name);
+            var apiEntity = this.QueryApiResource().FirstOrDefault(c => c.Name == this.Name);
 
             if (apiEntity is null)
             {

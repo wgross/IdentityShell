@@ -2,10 +2,8 @@
 using IdentityServer4.Models;
 using IdentityShell.Data;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation;
-using System.Security.Claims;
 
 namespace IdentityShell.Cmdlets.Configuration
 {
@@ -65,7 +63,7 @@ namespace IdentityShell.Cmdlets.Configuration
         public bool IncludeJwtId { get; set; }
 
         [Parameter]
-        public ICollection<Claim> Claims { get; set; }
+        public object[] Claims { get; set; }
 
         [Parameter]
         public bool AlwaysSendClientClaims { get; set; }
@@ -129,12 +127,6 @@ namespace IdentityShell.Cmdlets.Configuration
 
         [Parameter]
         [ValidateSet(
-            nameof(GrantType.AuthorizationCode),
-            nameof(GrantType.ClientCredentials),
-            nameof(GrantType.DeviceFlow),
-            nameof(GrantType.Hybrid),
-            nameof(GrantType.Implicit),
-            nameof(GrantType.ResourceOwnerPassword),
             GrantType.AuthorizationCode,
             GrantType.ClientCredentials,
             GrantType.DeviceFlow,
@@ -175,9 +167,9 @@ namespace IdentityShell.Cmdlets.Configuration
 
         protected override void ProcessRecord()
         {
-            IdentityServer4.Models.Client clientModel = this.InputObject;
+            Client clientModel = this.InputObject;
             IdentityServer4.EntityFramework.Entities.Client clientEntity = null;
-            
+
             if (clientModel is null)
             {
                 clientEntity = this.QueryClients().SingleOrDefault(c => c.ClientId == this.ClientId);
@@ -205,189 +197,187 @@ namespace IdentityShell.Cmdlets.Configuration
 
         private Client SetBoundParameters(Client client)
         {
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(AllowOfflineAccess)))
+            if (this.IsParameterBound(nameof(this.AllowOfflineAccess)))
             {
                 client.AllowOfflineAccess = this.AllowOfflineAccess;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(IdentityTokenLifetime)))
+            if (this.IsParameterBound(nameof(this.IdentityTokenLifetime)))
             {
                 client.IdentityTokenLifetime = this.IdentityTokenLifetime;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(AccessTokenLifetime)))
+            if (this.IsParameterBound(nameof(this.AccessTokenLifetime)))
             {
                 client.AccessTokenLifetime = this.AccessTokenLifetime;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(AuthorizationCodeLifetime)))
+            if (this.IsParameterBound(nameof(this.AuthorizationCodeLifetime)))
             {
                 client.AuthorizationCodeLifetime = this.AuthorizationCodeLifetime;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(AbsoluteRefreshTokenLifetime)))
+            if (this.IsParameterBound(nameof(this.AbsoluteRefreshTokenLifetime)))
             {
                 client.AbsoluteRefreshTokenLifetime = this.AbsoluteRefreshTokenLifetime;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(SlidingRefreshTokenLifetime)))
+            if (this.IsParameterBound(nameof(this.SlidingRefreshTokenLifetime)))
             {
                 client.SlidingRefreshTokenLifetime = this.SlidingRefreshTokenLifetime;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(ConsentLifetime)))
+            if (this.IsParameterBound(nameof(this.ConsentLifetime)))
             {
                 client.ConsentLifetime = this.ConsentLifetime;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(RefreshTokenUsage)))
+            if (this.IsParameterBound(nameof(this.RefreshTokenUsage)))
             {
                 client.RefreshTokenUsage = this.RefreshTokenUsage;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(UpdateAccessTokenClaimsOnRefresh)))
+            if (this.IsParameterBound(nameof(this.UpdateAccessTokenClaimsOnRefresh)))
             {
                 client.UpdateAccessTokenClaimsOnRefresh = this.UpdateAccessTokenClaimsOnRefresh;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(RefreshTokenExpiration)))
+            if (this.IsParameterBound(nameof(this.RefreshTokenExpiration)))
             {
                 client.RefreshTokenExpiration = this.RefreshTokenExpiration;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(AccessTokenType)))
+            if (this.IsParameterBound(nameof(this.AccessTokenType)))
             {
                 client.AccessTokenType = this.AccessTokenType;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(EnableLocalLogin)))
+            if (this.IsParameterBound(nameof(this.EnableLocalLogin)))
             {
                 client.EnableLocalLogin = this.EnableLocalLogin;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(IdentityProviderRestrictions)))
+            if (this.IsParameterBound(nameof(this.IdentityProviderRestrictions)))
             {
                 client.IdentityProviderRestrictions = Collection(this.IdentityProviderRestrictions);
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(IncludeJwtId)))
+            if (this.IsParameterBound(nameof(this.IncludeJwtId)))
             {
                 client.IncludeJwtId = this.IncludeJwtId;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(Claims)))
+            if (this.IsParameterBound(nameof(this.Claims)))
             {
-                client.Claims = this.Claims;
+                client.Claims = this.Claims.Select(c => PSArgumentValue<ClientClaim>(c)).ToArray();
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(AlwaysSendClientClaims)))
+            if (this.IsParameterBound(nameof(this.AlwaysSendClientClaims)))
             {
                 client.AlwaysSendClientClaims = this.AlwaysSendClientClaims;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(ClientClaimsPrefix)))
+            if (this.IsParameterBound(nameof(this.ClientClaimsPrefix)))
             {
                 client.ClientClaimsPrefix = this.ClientClaimsPrefix;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(PairWiseSubjectSalt)))
+            if (this.IsParameterBound(nameof(this.PairWiseSubjectSalt)))
             {
                 client.PairWiseSubjectSalt = this.PairWiseSubjectSalt;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(UserSsoLifetime)))
+            if (this.IsParameterBound(nameof(this.UserSsoLifetime)))
             {
                 client.UserSsoLifetime = this.UserSsoLifetime;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(UserCodeType)))
+            if (this.IsParameterBound(nameof(this.UserCodeType)))
             {
                 client.UserCodeType = this.UserCodeType;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(DeviceCodeLifetime)))
+            if (this.IsParameterBound(nameof(this.DeviceCodeLifetime)))
             {
                 client.DeviceCodeLifetime = this.DeviceCodeLifetime;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(AlwaysIncludeUserClaimsInIdToken)))
+            if (this.IsParameterBound(nameof(this.AlwaysIncludeUserClaimsInIdToken)))
             {
                 client.AlwaysIncludeUserClaimsInIdToken = this.AlwaysIncludeUserClaimsInIdToken;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(AllowedScopes)))
+            if (this.IsParameterBound(nameof(this.AllowedScopes)))
             {
                 client.AllowedScopes = Collection(this.AllowedScopes);
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(Properties)))
+            if (this.IsParameterBound(nameof(this.Properties)))
             {
-                client.Properties = this.Properties
-                    .OfType<DictionaryEntry>()
-                    .ToDictionary(keySelector: d => d.Key.ToString(), elementSelector: d => d.Value.ToString());
+                client.Properties = this.ToDictionary(this.Properties);
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(BackChannelLogoutSessionRequired)))
+            if (this.IsParameterBound(nameof(this.BackChannelLogoutSessionRequired)))
             {
                 client.BackChannelLogoutSessionRequired = this.BackChannelLogoutSessionRequired;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(Enabled)))
+            if (this.IsParameterBound(nameof(this.Enabled)))
             {
                 client.Enabled = this.Enabled;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(ClientId)))
+            if (this.IsParameterBound(nameof(this.ClientId)))
             {
                 client.ClientId = this.ClientId;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(ProtocolType)))
+            if (this.IsParameterBound(nameof(this.ProtocolType)))
             {
                 client.ProtocolType = this.ProtocolType;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(ClientSecrets)))
+            if (this.IsParameterBound(nameof(this.ClientSecrets)))
             {
-                client.ClientSecrets = this.ClientSecrets.Select(cs => this.PSArgumentCast<Secret>(cs)).ToArray();
+                client.ClientSecrets = this.ClientSecrets.Select(cs => PSArgumentValue<Secret>(cs)).ToArray();
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(RequireClientSecret)))
+            if (this.IsParameterBound(nameof(this.RequireClientSecret)))
             {
                 client.RequireClientSecret = this.RequireClientSecret;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(ClientName)))
+            if (this.IsParameterBound(nameof(this.ClientName)))
             {
                 client.ClientName = this.ClientName;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(Description)))
+            if (this.IsParameterBound(nameof(this.Description)))
             {
                 client.Description = this.Description;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(ClientUri)))
+            if (this.IsParameterBound(nameof(this.ClientUri)))
             {
                 client.ClientUri = this.ClientUri;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(LogoUri)))
+            if (this.IsParameterBound(nameof(this.LogoUri)))
             {
                 client.LogoUri = this.LogoUri;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(AllowedCorsOrigins)))
+            if (this.IsParameterBound(nameof(this.AllowedCorsOrigins)))
             {
                 client.AllowedCorsOrigins = Collection(this.AllowedCorsOrigins);
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(RequireConsent)))
+            if (this.IsParameterBound(nameof(this.RequireConsent)))
             {
                 client.RequireConsent = this.RequireConsent;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(AllowedGrantTypes)))
+            if (this.IsParameterBound(nameof(this.AllowedGrantTypes)))
             {
                 client.AllowedGrantTypes = Collection(this.AllowedGrantTypes).Select(GrantTypeValue).ToList();
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(RequirePkce)))
+            if (this.IsParameterBound(nameof(this.RequirePkce)))
             {
                 client.RequirePkce = this.RequirePkce;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(AllowPlainTextPkce)))
+            if (this.IsParameterBound(nameof(this.AllowPlainTextPkce)))
             {
                 client.AllowPlainTextPkce = this.AllowPlainTextPkce;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(AllowAccessTokensViaBrowser)))
+            if (this.IsParameterBound(nameof(this.AllowAccessTokensViaBrowser)))
             {
                 client.AllowAccessTokensViaBrowser = this.AllowAccessTokensViaBrowser;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(RedirectUris)))
+            if (this.IsParameterBound(nameof(this.RedirectUris)))
             {
                 client.RedirectUris = Collection(this.RedirectUris);
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(PostLogoutRedirectUris)))
+            if (this.IsParameterBound(nameof(this.PostLogoutRedirectUris)))
             {
                 client.PostLogoutRedirectUris = Collection(this.PostLogoutRedirectUris);
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(FrontChannelLogoutUri)))
+            if (this.IsParameterBound(nameof(this.FrontChannelLogoutUri)))
             {
                 client.FrontChannelLogoutUri = this.FrontChannelLogoutUri;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(FrontChannelLogoutSessionRequired)))
+            if (this.IsParameterBound(nameof(this.FrontChannelLogoutSessionRequired)))
             {
                 client.FrontChannelLogoutSessionRequired = this.FrontChannelLogoutSessionRequired;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(BackChannelLogoutUri)))
+            if (this.IsParameterBound(nameof(this.BackChannelLogoutUri)))
             {
                 client.BackChannelLogoutUri = this.BackChannelLogoutUri;
             }
-            if (this.MyInvocation.BoundParameters.ContainsKey(nameof(AllowRememberConsent)))
+            if (this.IsParameterBound(nameof(this.AllowRememberConsent)))
             {
                 client.AllowRememberConsent = this.AllowRememberConsent;
             }

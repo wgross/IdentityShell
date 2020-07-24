@@ -40,7 +40,7 @@ namespace IdentityShell.Test
 
             // ASSERT
 
-            Assert.IsType<Scope>(result.ImmediateBaseObject);
+            Assert.IsType<ApiScope>(result.ImmediateBaseObject);
 
             Assert.Equal("name", result.Property<string>("Name"));
             Assert.Equal("displayName", result.Property<string>("displayName"));

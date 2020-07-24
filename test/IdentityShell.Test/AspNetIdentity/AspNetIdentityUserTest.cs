@@ -40,57 +40,8 @@ namespace IdentityShell.Test.AspNetIdentity
             return (user, claims);
         }
 
-        [Fact]
-        public async Task IdentityShell_reads_all_users()
+        private PSObject ArrangeAspNetIdentityUser()
         {
-            // ARRANGE
-
-            var (user, _) = await this.ArrangeUser();
-
-            // ACT
-
-            this.PowerShell.AddCommandEx<GetAspNetIdentityUserCommand>();
-
-            var result = this.PowerShell.Invoke().ToArray();
-
-            // ASSERT
-
-            Assert.False(this.PowerShell.HadErrors);
-            Assert.Single(result);
-            Assert.Equal(user.UserName, result.Single().Property<string>("UserName"));
-            Assert.Equal(user.Email, result.Single().Property<string>("Email"));
-            Assert.Equal(user.AccessFailedCount, result.Single().Property<int>("AccessFailedCount"));
-            Assert.Equal(user.ConcurrencyStamp, result.Single().Property<string>("ConcurrencyStamp"));
-            Assert.Equal(user.EmailConfirmed, result.Single().Property<bool>("EmailConfirmed"));
-            Assert.Equal(user.LockoutEnabled, result.Single().Property<bool>("LockoutEnabled"));
-            Assert.Equal(user.LockoutEnd, result.Single().Property<DateTimeOffset?>("LockoutEnd"));
-            Assert.Equal(user.NormalizedEmail, result.Single().Property<string>("NormalizedEmail"));
-            Assert.Equal(user.NormalizedUserName, result.Single().Property<string>("NormalizedUserName"));
-            Assert.Equal(user.PasswordHash, result.Single().Property<string>("PasswordHash"));
-            Assert.Equal(user.PhoneNumber, result.Single().Property<string>("PhoneNumber"));
-            Assert.Equal(user.PhoneNumberConfirmed, result.Single().Property<bool>("PhoneNumberConfirmed"));
-            Assert.Equal(user.SecurityStamp, result.Single().Property<string>("SecurityStamp"));
-            Assert.Equal(user.TwoFactorEnabled, result.Single().Property<bool>("TwoFactorEnabled"));
-        }
-
-        [Fact]
-        public void IdentityShell_creates_new_user()
-        {
-            // ARRANGE
-
-            var claims = new Claim[]
-            {
-                new Claim(JwtClaimTypes.Name, "Alice Smith"),
-                new Claim(JwtClaimTypes.GivenName, "Alice"),
-                new Claim(JwtClaimTypes.FamilyName, "Smith"),
-                new Claim(JwtClaimTypes.Email, "AliceSmith@email.com"),
-                new Claim(JwtClaimTypes.EmailVerified, "true", ClaimValueTypes.Boolean),
-                new Claim(JwtClaimTypes.WebSite, "http://alice.com"),
-                new Claim(JwtClaimTypes.Address, @"{ 'street_address': 'One Hacker Way', 'locality': 'Heidelberg', 'postal_code': 69118, 'country': 'Germany' }", IdentityServer4.IdentityServerConstants.ClaimValueTypes.Json)
-            };
-
-            // ACT
-
             this.PowerShell
                 .AddCommandEx<SetAspNetIdentityUserCommand>(cmd => cmd
                     .AddParameter(c => c.UserName, "alice")
@@ -105,12 +56,41 @@ namespace IdentityShell.Test.AspNetIdentity
                     .AddParameter(c => c.LockoutEnd, DateTimeOffset.Now));
 
             var result = this.PowerShell.Invoke().Single();
+            this.PowerShell.Commands.Clear();
+            return result;
+        }
+
+        private static void AssertAspNetIdentityUser(PSObject pso)
+        {
+            var applicationUser = pso.As<ApplicationUser>();
+
+            Assert.Equal("alice", applicationUser.UserName);
+            Assert.Equal("email", applicationUser.Email);
+            Assert.Equal(1, applicationUser.AccessFailedCount);
+            Assert.True(applicationUser.EmailConfirmed);
+            Assert.True(applicationUser.LockoutEnabled);
+            Assert.NotNull(applicationUser.LockoutEnd);
+            Assert.Equal("EMAIL", applicationUser.NormalizedEmail);
+            Assert.Equal("ALICE", applicationUser.NormalizedUserName);
+            Assert.NotNull(applicationUser.PasswordHash);
+            Assert.Equal("123", applicationUser.PhoneNumber);
+            Assert.True(applicationUser.PhoneNumberConfirmed);
+            Assert.NotNull(applicationUser.SecurityStamp);
+            Assert.True(applicationUser.TwoFactorEnabled);
+        }
+
+        [Fact]
+        public void IdentityShell_creates_user()
+        {
+            // ARRANGE
+
+            var result = ArrangeAspNetIdentityUser();
 
             // ASSERT
 
             Assert.False(this.PowerShell.HadErrors);
 
-            var resultValue = (ApplicationUser)result.ImmediateBaseObject;
+            var resultValue = result.As<ApplicationUser>();
 
             this.PowerShell.Commands.Clear();
             this.PowerShell.AddCommandEx<GetAspNetIdentityUserCommand>();
@@ -120,119 +100,120 @@ namespace IdentityShell.Test.AspNetIdentity
             // ASSERT
 
             Assert.False(this.PowerShell.HadErrors);
-            Assert.Equal(resultValue.UserName, resultFromRead.Property<string>("UserName"));
-            Assert.Equal(resultValue.Email, resultFromRead.Property<string>("Email"));
-            Assert.Equal(resultValue.AccessFailedCount, resultFromRead.Property<int>("AccessFailedCount"));
-            Assert.Equal(resultValue.ConcurrencyStamp, resultFromRead.Property<string>("ConcurrencyStamp"));
-            Assert.Equal(resultValue.EmailConfirmed, resultFromRead.Property<bool>("EmailConfirmed"));
-            Assert.Equal(resultValue.LockoutEnabled, resultFromRead.Property<bool>("LockoutEnabled"));
-            Assert.Equal(resultValue.LockoutEnd, resultFromRead.Property<DateTimeOffset?>("LockoutEnd"));
-            Assert.Equal(resultValue.NormalizedEmail, resultFromRead.Property<string>("NormalizedEmail"));
-            Assert.Equal(resultValue.NormalizedUserName, resultFromRead.Property<string>("NormalizedUserName"));
-            Assert.Equal(resultValue.PasswordHash, resultFromRead.Property<string>("PasswordHash"));
-            Assert.Equal(resultValue.PhoneNumber, resultFromRead.Property<string>("PhoneNumber"));
-            Assert.Equal(resultValue.PhoneNumberConfirmed, resultFromRead.Property<bool>("PhoneNumberConfirmed"));
-            Assert.Equal(resultValue.SecurityStamp, resultFromRead.Property<string>("SecurityStamp"));
-            Assert.Equal(resultValue.TwoFactorEnabled, resultFromRead.Property<bool>("TwoFactorEnabled"));
+            AssertAspNetIdentityUser(resultFromRead);
         }
 
         [Fact]
-        public async Task IdentityShell_modifies_user()
+        public void IdentityShell_reads_user()
         {
             // ARRANGE
 
-            var (user, _) = await this.ArrangeUser();
+            var pso = this.ArrangeAspNetIdentityUser();
 
             // ACT
 
-            this.PowerShell
-                .AddCommandEx<SetAspNetIdentityUserCommand>(cmd => cmd
-                    .AddParameter(c => c.UserName, "alice")
-                    .AddParameter(c => c.CurrentPassword, "Pass123$")
-                    .AddParameter(c => c.NewPassword, "Pass123$-changed")
-                    .AddParameter(c => c.PhoneNumberConfirmed, true)
-                    .AddParameter(c => c.PhoneNumber, "123")
-                    .AddParameter(c => c.TwoFactorEnabled, true)
-                    .AddParameter(c => c.AccessFailedCount, 1)
-                    .AddParameter(c => c.Email, "email")
-                    .AddParameter(c => c.EmailConfirmed, true)
-                    .AddParameter(c => c.LockoutEnabled, false)
-                    .AddParameter(c => c.LockoutEnd, DateTimeOffset.Now));
-
-            var result = this.PowerShell.Invoke().Single();
+            var result = this.PowerShell.AddCommandEx<GetAspNetIdentityUserCommand>().Invoke().Single();
 
             // ASSERT
 
             Assert.False(this.PowerShell.HadErrors);
+            AssertAspNetIdentityUser(result);
+        }
 
-            var resultValue = (ApplicationUser)result.ImmediateBaseObject;
+        [Fact]
+        public void IdentityShell_reads_user_by_UserName()
+        {
+            // ARRANGE
+
+            var pso = this.ArrangeAspNetIdentityUser();
+
+            // ACT
+
+            var result = this.PowerShell
+                .AddCommandEx<GetAspNetIdentityUserCommand>(cmd => cmd.AddParameter(c => c.UserName, "alice"))
+                .Invoke().Single();
+
+            // ASSERT
+
+            Assert.False(this.PowerShell.HadErrors);
+            AssertAspNetIdentityUser(result);
+        }
+
+        [Fact]
+        public void IdentityShell_modifies_user()
+        {
+            // ARRANGE
+
+            var arranged = this.ArrangeAspNetIdentityUser();
+
+            // ACT
+
+            var result = this.PowerShell
+                .AddCommandEx<SetAspNetIdentityUserCommand>(cmd =>
+                {
+                    cmd.AddParameter(c => c.CurrentPassword, "Pass123$");
+                    cmd.AddParameter(c => c.NewPassword, "Pass123$-changed");
+                    cmd.AddParameter(c => c.UserName, "alice");
+                })
+                .Invoke()
+                .Single();
+
+            // ASSERT
+
+            Assert.False(this.PowerShell.HadErrors);
+            Assert.NotEqual(arranged.As<ApplicationUser>().PasswordHash, result.As<ApplicationUser>().PasswordHash);
+        }
+
+        [Fact]
+        public void IdentityShell_removes_user()
+        {
+            // ARRANGE
+
+            this.ArrangeAspNetIdentityUser();
+
+            // ACT
+
+            this.PowerShell
+                .AddCommandEx<RemoveAspNetIdentityUserCommand>(cmd => cmd.AddParameter(c => c.UserName, "alice"))
+                .Invoke();
+
+            // ASSERT
+
+            Assert.False(this.PowerShell.HadErrors);
 
             this.PowerShell.Commands.Clear();
-            this.PowerShell.AddCommandEx<GetAspNetIdentityUserCommand>();
-
-            var resultFromRead = this.PowerShell.Invoke().Single();
-
-            // ASSERT
-
-            Assert.False(this.PowerShell.HadErrors);
-            Assert.Equal(resultValue.UserName, resultFromRead.Property<string>("UserName"));
-            Assert.Equal(resultValue.NormalizedUserName, resultFromRead.Property<string>("NormalizedUserName"));
-            Assert.Equal(resultValue.Email, resultFromRead.Property<string>("Email"));
-            Assert.Equal(resultValue.NormalizedEmail, resultFromRead.Property<string>("NormalizedEmail"));
-            Assert.Equal(resultValue.AccessFailedCount, resultFromRead.Property<int>("AccessFailedCount"));
-            Assert.Equal(resultValue.ConcurrencyStamp, resultFromRead.Property<string>("ConcurrencyStamp"));
-            Assert.Equal(resultValue.EmailConfirmed, resultFromRead.Property<bool>("EmailConfirmed"));
-            Assert.Equal(resultValue.LockoutEnabled, resultFromRead.Property<bool>("LockoutEnabled"));
-            Assert.Equal(resultValue.LockoutEnd, resultFromRead.Property<DateTimeOffset?>("LockoutEnd"));
-            Assert.Equal(resultValue.PasswordHash, resultFromRead.Property<string>("PasswordHash"));
-            Assert.Equal(resultValue.PhoneNumber, resultFromRead.Property<string>("PhoneNumber"));
-            Assert.Equal(resultValue.PhoneNumberConfirmed, resultFromRead.Property<bool>("PhoneNumberConfirmed"));
-            Assert.Equal(resultValue.SecurityStamp, resultFromRead.Property<string>("SecurityStamp"));
-            Assert.Equal(resultValue.TwoFactorEnabled, resultFromRead.Property<bool>("TwoFactorEnabled"));
-
-            Assert.NotEqual(resultValue.Email, user.Email);
-            Assert.NotEqual(resultValue.NormalizedEmail, user.NormalizedEmail);
-            Assert.NotEqual(resultValue.EmailConfirmed, user.EmailConfirmed);
-            Assert.NotEqual(resultValue.AccessFailedCount, user.AccessFailedCount);
-            Assert.NotEqual(resultValue.LockoutEnabled, user.LockoutEnabled);
-            Assert.NotEqual(resultValue.LockoutEnd, user.LockoutEnd);
-            Assert.NotEqual(resultValue.NormalizedEmail, user.NormalizedEmail);
-            Assert.NotEqual(resultValue.PasswordHash, user.PasswordHash);
-            Assert.NotEqual(resultValue.PhoneNumber, user.PhoneNumber);
-            Assert.NotEqual(resultValue.PhoneNumberConfirmed, user.PhoneNumberConfirmed);
-            Assert.NotEqual(resultValue.PhoneNumberConfirmed, user.PhoneNumberConfirmed);
-            Assert.NotEqual(resultValue.TwoFactorEnabled, user.TwoFactorEnabled);
+            Assert.Empty(this.PowerShell.AddCommandEx<GetAspNetIdentityUserCommand>().Invoke().ToArray());
         }
 
         [Fact]
-        public async Task IdentityShell_reads_user_claims()
+        public void IdentityShell_removes_user_from_pipe()
         {
             // ARRANGE
-            var (user, claims) = await this.ArrangeUser();
+
+            var pso = this.ArrangeAspNetIdentityUser();
 
             // ACT
 
             this.PowerShell
-                .AddCommandEx<GetAspNetIdentityUserClaimCommand>(c => c.AddParameter(c => c.UserName, user.UserName));
-
-            var result = this.PowerShell.Invoke().ToArray();
+                .AddCommandEx<RemoveAspNetIdentityUserCommand>()
+                .Invoke(Array(pso));
 
             // ASSERT
 
-            Claim claim(string type) => claims.Single(c => c.Type.Equals(type));
+            Assert.False(this.PowerShell.HadErrors);
 
-            Assert.All(result.Select(r => (Claim)r.ImmediateBaseObject), r =>
-            {
-                Assert.Equal(claim(r.Type).Value, r.Value);
-                // types are different//Assert.Equal(claim(r.Type).ValueType, r.ValueType);
-            });
+            this.PowerShell.Commands.Clear();
+            Assert.Empty(this.PowerShell.AddCommandEx<GetAspNetIdentityUserCommand>().Invoke().ToArray());
         }
 
         [Fact]
-        public async Task IdentityShell_modifies_user_claims()
+        public void IdentityShell_creates_user_claim()
         {
             // ARRANGE
-            var (user, claims) = await this.ArrangeUser();
+
+            var arranged = ArrangeAspNetIdentityUser();
+
+            // ACT
 
             var claim = this.PowerShell
                 .AddCommandEx<NewClaimCommand>(c => c
@@ -246,7 +227,7 @@ namespace IdentityShell.Test.AspNetIdentity
 
             this.PowerShell
                 .AddCommandEx<SetAspNetIdentityUserClaimCommand>(c => c
-                    .AddParameter(c => c.UserName, user.UserName))
+                    .AddParameter(c => c.UserName, "alice"))
                     .Invoke(new PSObject[] { claim });
 
             // ASSERT
@@ -254,7 +235,7 @@ namespace IdentityShell.Test.AspNetIdentity
             this.PowerShell.Commands.Clear();
             var resultFromRead = this.PowerShell
                 .AddCommandEx<GetAspNetIdentityUserClaimCommand>(c => c
-                    .AddParameter(c => c.UserName, user.UserName))
+                    .AddParameter(c => c.UserName, "alice"))
                 .Invoke()
                 .ToArray();
 
@@ -262,6 +243,76 @@ namespace IdentityShell.Test.AspNetIdentity
 
             Assert.Equal(ClaimValueTypes.String, modifiedClaim.ValueType);
             Assert.Equal("changed-email", modifiedClaim.Value);
+        }
+
+        [Fact]
+        public void IdentityShell_modifies_user_claims()
+        {
+            // ARRANGE
+
+            var arranged = ArrangeAspNetIdentityUser();
+
+            var claim = this.PowerShell
+                .AddCommandEx<NewClaimCommand>(c => c
+                    .AddParameter(c => c.Type, ClaimTypes.Email)
+                    .AddParameter(c => c.ValueType, ClaimValueTypes.Email)
+                    .AddParameter(c => c.Value, "changed-email"))
+                .Invoke().Single();
+            this.PowerShell.Commands.Clear();
+
+            // ACT
+
+            this.PowerShell
+                .AddCommandEx<SetAspNetIdentityUserClaimCommand>(c => c
+                    .AddParameter(c => c.UserName, "alice"))
+                    .Invoke(new PSObject[] { claim });
+
+            // ASSERT
+
+            this.PowerShell.Commands.Clear();
+            var resultFromRead = this.PowerShell
+                .AddCommandEx<GetAspNetIdentityUserClaimCommand>(c => c
+                    .AddParameter(c => c.UserName, "alice"))
+                .Invoke()
+                .ToArray();
+
+            var modifiedClaim = resultFromRead.Select(pso => (Claim)pso.ImmediateBaseObject).Single(c => c.Type.Equals(ClaimTypes.Email));
+
+            Assert.Equal(ClaimValueTypes.String, modifiedClaim.ValueType);
+            Assert.Equal("changed-email", modifiedClaim.Value);
+        }
+
+        [Fact]
+        public void IdentityShell_removes_user_claim()
+        {
+            // ARRANGE
+            var arranged = ArrangeAspNetIdentityUser();
+
+            var claim = this.PowerShell
+               .AddCommandEx<NewClaimCommand>(c => c
+                   .AddParameter(c => c.Type, ClaimTypes.Email)
+                   .AddParameter(c => c.ValueType, ClaimValueTypes.Email)
+                   .AddParameter(c => c.Value, "changed-email"))
+               .Invoke().Single();
+            this.PowerShell.Commands.Clear();
+
+            // ACT
+
+            this.PowerShell
+                .AddCommandEx<RemoveAspNetIdentityUserClaimCommand>(c => c
+                    .AddParameter(c => c.UserName, "alice"))
+                .Invoke(Array(claim));
+
+            // ASSERT
+
+            this.PowerShell.Commands.Clear();
+            var resultFromRead = this.PowerShell
+                .AddCommandEx<GetAspNetIdentityUserClaimCommand>(c => c
+                    .AddParameter(c => c.UserName, "alice"))
+                .Invoke()
+                .ToArray();
+
+            Assert.Empty(resultFromRead);
         }
     }
 }

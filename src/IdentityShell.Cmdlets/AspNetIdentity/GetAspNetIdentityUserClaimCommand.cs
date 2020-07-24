@@ -14,8 +14,8 @@ namespace IdentityShell.Cmdlets.AspNetIdentity
 
         protected override void ProcessRecord()
         {
-            this.AwaitResult(
-                this.UserManager.GetClaimsAsync(this.AwaitResult(
+            Await(
+                this.UserManager.GetClaimsAsync(Await(
                     this.UserManager.FindByNameAsync(this.UserName))))
             .ToList()
             .ForEach(c => this.WriteObject(c));

@@ -4,6 +4,7 @@
 using IdentityShell.Cmdlets.AspNetIdentity;
 using IdentityShell.Cmdlets.Common;
 using IdentityShell.Cmdlets.Configuration;
+using IdentityShell.Cmdlets.IdentityEndpoints;
 using IdentityShell.Cmdlets.Operation;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
@@ -50,6 +51,7 @@ namespace IdentityShell
                     .AddIdentityConfigurationCommands()
                     .AddIdentityOperationCommands()
                     .AddCommonCommands()
+                    .AddEndpointCommands()
                     .AddAspIdentityCommands();
 
                 iss.Variables.Add(new SessionStateVariableEntry("webHostTask", webHostTask, "Task executing the webhost"));

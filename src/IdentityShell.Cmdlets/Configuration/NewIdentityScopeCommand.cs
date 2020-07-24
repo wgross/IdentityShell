@@ -30,10 +30,10 @@ namespace IdentityShell.Cmdlets
 
         protected override void ProcessRecord()
         {
-            this.WriteObject(this.SetBoundParameters(new Scope(this.Name)));
+            this.WriteObject(this.SetBoundParameters(new ApiScope(this.Name)));
         }
 
-        private Scope SetBoundParameters(Scope scope)
+        private ApiScope SetBoundParameters(ApiScope scope)
         {
             if (this.MyInvocation.BoundParameters.ContainsKey(nameof(DisplayName)))
             {

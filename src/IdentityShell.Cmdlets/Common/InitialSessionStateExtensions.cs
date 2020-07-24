@@ -9,6 +9,7 @@ namespace IdentityShell.Cmdlets.Common
         {
             sessionState.ExecutionPolicy = ExecutionPolicy.Unrestricted;
             sessionState.Commands.Add(new SessionStateCmdletEntry("New-Claim", typeof(NewClaimCommand), string.Empty));
+            sessionState.Commands.Add(new SessionStateCmdletEntry("New-IdentityClientClaim", typeof(NewIdentityClientClaimCommand), string.Empty));
 
             return sessionState;
         }

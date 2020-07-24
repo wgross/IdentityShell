@@ -16,16 +16,16 @@ namespace IdentityShell.Cmdlets.AspNetIdentity
 
         protected override void ProcessRecord()
         {
-            var user = this.AwaitResult(this.UserManager.FindByNameAsync(this.UserName));
-            var claims = this.AwaitResult(this.UserManager.GetClaimsAsync(user));
+            var user = Await(this.UserManager.FindByNameAsync(this.UserName));
+            var claims = Await(this.UserManager.GetClaimsAsync(user));
             var claimToModify = claims.SingleOrDefault(c => c.Type.Equals(this.InputObject.Type));
             if (claimToModify is null)
             {
-                this.AwaitResult(this.UserManager.AddClaimAsync(user, this.InputObject));
+                Await(this.UserManager.AddClaimAsync(user, this.InputObject));
             }
             else
             {
-                this.AwaitResult(this.UserManager.ReplaceClaimAsync(user, claimToModify, this.InputObject));
+                Await(this.UserManager.ReplaceClaimAsync(user, claimToModify, this.InputObject));
             }
         }
     }
