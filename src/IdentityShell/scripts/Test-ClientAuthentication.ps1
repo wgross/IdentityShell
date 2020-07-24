@@ -1,4 +1,5 @@
 Import-Module Pester
+. $PSScriptRoot/common.ps1
 
 filter sha256base64 {
     $bytes = [System.Text.Encoding]::UTF8.getBytes($_)
@@ -8,61 +9,60 @@ filter sha256base64 {
 
 Describe "Protecting an API using client credentials" {
     
-    Context "Configuration" {
-        BeforeAll {
-            Get-IdentityApiScope|Remove-identityApiScope
-            Get-IdentityApiResource|Remove-identityApiResource
-            Get-IdentityClient|Remove-IdentityClient
-        }
-        
-        $scope=Set-IdentityApiScope -Name api1 
-        It "Create an api scope api1" {
-            $scope|Should -Not -Be $null
-            $scope.Name | Should -Be "api1"
+    BeforeAll {
+        clean_configurationstore
+        clean_aspidentitystore
+    }
+
+    Context "Configuration of the protected API" {
+   
+        $apiScope = Set-IdentityApiScope -Name api1 
+        It "requires an api scope 'api1'" {
+            $apiScope|Should -Not -Be $null
+            $apiScope.Name | Should -Be "api1"
         }
 
-        $api = Set-IdentityApiResource -Name api1 -DisplayName "My Api" -Scopes "api1"
-        It "Create the api resource Api1" {
-            $api|Should -Not -Be $null
-            $api.Name | Should -Be "api1"
-            $api.Scopes | Should -Be "api1"
-        }
-
-        $secretHash = "secret"|sha256base64
-        $clientSecret=New-IdentitySecret -Value $secretHash
-        It "create a secret to be added to the client" {
-            $clientSecret.Value|Should -Be $secretHash
-        }
-
-        $client = Set-IdentityClient -ClientId client -AllowedGrantTypes client_credentials -ClientSecrets $clientSecret -AllowedScopes "api1"
-        It "Create a client having access to api1 using the secret from above" {
-            $client.ClientSecrets.Length|Should -Be 1
-            $client.ClientSecrets[0].Value|Should -Be $secretHash
-            $client.AllowedScopes | Should -Be "api1"
+        $apiResource = Set-IdentityApiResource -Name api1 -DisplayName "My Api" -Scopes $apiScope.Name
+        It "defines an api resource" {
+            $apiResource|Should -Not -Be $null
+            $apiResource.Name | Should -Be "api1"
+            $apiResource.Scopes | Should -Be "api1"
         }
     }
 
-    Context "Token Endpoint" {
-        $discoveryDoc = Invoke-IdentityDiscoveryEndpoint 
-        It "Request discovery document with token endpoint" {
-            $discoveryDoc|Should -Not -Be $null
-            $discoveryDoc.TokenEndpoint|Should -Not -Be $null
+    Context "Configuration of the client acessing the API" {
+
+        $secretHash = "secret"|sha256base64
+        $clientSecret=New-IdentitySecret -Value $secretHash
+        It "has a secret added to the client" {
+            $clientSecret.Value|Should -Be $secretHash
         }
-    
-        $token = Invoke-IdentityTokenEndpoint -ClientId "client" -ClientSecret "secret" -Scope "api1" -Endpoint $discoveryDoc.TokenEndpoint -TokenVariableName "tokenvar"
-        It "Request token from authorization endpoint" {
+
+        $client = Set-IdentityClient -ClientId client -AllowedGrantTypes client_credentials -ClientSecrets $clientSecret -AllowedScopes "api1","openid"
+        It "rewqures a client with access to 'Ap1'" {
+            $client.ClientSecrets.Length|Should -Be 1
+            $client.ClientSecrets[0].Value|Should -Be $secretHash
+            $client.AllowedScopes | Should -Be @("api1","openid")
+        }
+    }
+
+    Context "Request client access token" {
+
+        $discoveryDoc = Invoke-IdentityDiscoveryEndpoint         
+        $token = Invoke-IdentityTokenEndpoint -ClientId "client" -ClientSecret "secret" -Scopes "api1" -Endpoint $discoveryDoc.TokenEndpoint -TokenVariableName "tokenvar"
+        It "retrieved a token from IdentityServer" {
             $token | Should -Not -Be $null
         }
-        It "Token variable was set with AccessToken" {
+        It "set the given token varaible" {
             $tokenvar|Should -Be $token.AccessToken
         }
     }
 
-    Context "User Info Endpoint" {
-        $discoveryDoc = Invoke-IdentityDiscoveryEndpoint 
-        $token = Invoke-IdentityTokenEndpoint -ClientId "client" -ClientSecret "secret" -Scope "api1" -Endpoint $discoveryDoc.TokenEndpoint
+    Context "Requesting user info" {
 
-        It "Contains the user info data" {
+        $discoveryDoc = Invoke-IdentityDiscoveryEndpoint 
+        $token = Invoke-IdentityTokenEndpoint -ClientId "client" -ClientSecret "secret" -Scopes "api1" -Endpoint $discoveryDoc.TokenEndpoint
+        It "IdentityServer provides a user info data" {
             $userInfo = Invoke-IdentityUserInfoEndpoint -Endpoint $discoveryDoc.UserInfoEndpoint -Token $token.AccessToken
             $userInfo | Should -Not -Be $null
         }

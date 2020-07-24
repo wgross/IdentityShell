@@ -8,7 +8,7 @@ This protocol flow is used to grant access to a client software identified by a 
 
 Beginning with IdentityServer4 v4.x teh Api Scopes are decoupled from the api resources. Th first sto in defineing an API is therefore to define a scope:
 ```powershell
-PS> Set-IdentityApiScope -Name api1
+PS> Set-IdentityApiScope -Name "api1"
 
 Required                : False
 Emphasize               : False
@@ -20,10 +20,10 @@ ShowInDiscoveryDocument : True
 UserClaims              : {}
 Properties              : {}
 ```
-The cmdlet Get-IdentityApiScope allow to brows the defined scopes.
+The cmdlet Get-IdentityApiScope allow to browse the avaliable api scopes.
 The api refers to the scope from above by its name. Every Api has to have at least one scope:
 ```powershell
-PS> Set-IdentityApiResource -Name api1 -DisplayName "My Api" -Scopes (New-IdentityScope -Name api1)
+PS> Set-IdentityApiResource -Name "api1" -DisplayName "My Api" -Scopes "api1"
 
 ApiSecrets  : {}
 Scopes      : {api1}
@@ -54,7 +54,7 @@ The identity server tutorial uses the word "secret" hashed as SHA-256. For hashi
 
 ```powershell
 filter sha256base64 {
-    $bytes = [System.Text.Encoding]::UTF8.getBytes($_)
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes($_)
     $hash = [System.Security.Cryptography.HashAlgorithm]::Create("SHA256").ComputeHash($bytes)
     [System.Convert]::ToBase64String($hash)
 }
@@ -62,7 +62,7 @@ filter sha256base64 {
 Now the client can be created with a properly hashed client secret:
 ```powershell
 PS> $secrethash = "secret"|sha256base64
-PS> Set-IdentityClient -ClientId client -AllowedGrantTypes ClientCredentials -ClientSecrets (New-IdentitySecret -Value $secrethash) -AllowedScopes "api1"
+PS> Set-IdentityClient -ClientId client -AllowedGrantTypes client_credentials -ClientSecrets (New-IdentitySecret -Value $secrethash) -AllowedScopes "api1"
 
 Enabled                           : True
 ClientId                          : client
@@ -169,14 +169,14 @@ The protocol flow for client credential authentication is shown in [example-clie
 This scenario grants access to a interative use at a client software uncapable of using a web page as login dialog like a fat client or example.
 The users are stored persistently in an identity store defined by the 
 [provided nuget package](https://www.nuget.org/packages/Microsoft.AspNetCore.Identity/).
-We assume the client configuration from above. The lines below set the allowed grants including resource owner flow:
+We assume the client configuration from above. The lines below set the allowed grants including resource owner flow. The allowed scope are extsned wit profile and opnenid to allow querying of user info from the IdentiyServer.
 ```powershell
 PS> $client=Get-IdentityClient 
-PS> $client|Set-IdentityClient -AllowedGrantTypes client_credentials,ResourceOwnerPassword,DeviceFlow
+PS> $client|Set-IdentityClient -AllowedGrantTypes "client_credentials","password" 
 ```
  Now a user is required from the AspNetIdentity example:
 ```powershell
-PS> Set-AspNetIdentityUser -UserName alice -NewPassword "Pass123$"
+PS> Set-AspNetIdentityUser -UserName "alice" -NewPassword "Pass123$"
 ```
 To inspect the users use cmdlet Get-AspNetIdentityUser:
 ```powershell
@@ -198,19 +198,17 @@ LockoutEnd           :
 LockoutEnabled       : True
 AccessFailedCount    : 0
 ```
-Setting the users properties doesn't implicitely create claims for the user of the same semantic. This must be done independently.
+Setting the users properties doesn't implicitly create claims for the user of the same semantic. This must be done independently.
 If you create these claims you will see that the arguments 'Type' and 'ValueType' provide argument completion for known values.
 ```powershell
 PS> $claims = @(
         New-Claim -Type Name -Value "Alice Smith"
         New-Claim -Type GivenName -Value "Alice"
         New-Claim -Type FamilyName -Value "Smith"
-        New-Claim -Type Email -Value "AliceSmith@email.com"
-        New-Claim -Type EmailVerified -Value true -ValueType Boolean
         New-Claim -Type WebSite -Value "http://alice.com"
     )
 
-PS> $claims|Set-AspNetIdentityUserClaim -UserName alice 
+PS> $claims|Set-AspNetIdentityUserClaim -UserName "alice"
 ```
 To check the claims invoke the cmdlet Get-AspNetIdentityUserClaim:
 ```powershell
@@ -252,9 +250,9 @@ Properties              : {}
 ```
 Add the scopes names to the allowed scopes of the client:
 ```powershell
-PS> Set-IdentityClient -ClientId client -AllowedScopes api1,openid,profile
+PS> Set-IdentityClient -ClientId "client" -AllowedScopes "api1","openid","profile"
 ```
-If the token-request asks for access to the scopes "openid" and "profile" the user-info endpoint will return all claims defined in identity resources openid and profile. The extended respource owner example in [example-resource-owner-userinfo.rest](examples/example-resource-owner-userinfo.rest) shows HTTP requests.
+If the token request asks for access to the scopes "openid" and "profile" the user-info endpoint will return all claims defined in identity resources openid and profile. The extended respource owner example in [example-resource-owner-userinfo.rest](examples/example-resource-owner-userinfo.rest) shows HTTP requests.
 
 ## Enabling Device Flow 
 

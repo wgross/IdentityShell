@@ -1,5 +1,5 @@
 Import-Module Pester
-
+. $PSScriptRoot/common.ps1
 filter sha256base64 {
     $bytes = [System.Text.Encoding]::UTF8.getBytes($_)
     $hash = [System.Security.Cryptography.HashAlgorithm]::Create("SHA256").ComputeHash($bytes)
@@ -10,13 +10,8 @@ Describe "Protecting an API using resource owner flow" {
     
     Context "Configuration" {
         BeforeAll {
-            Get-IdentityApiScope|Remove-identityApiScope
-            Get-IdentityApiResource|Remove-IdentityApiResource
-            Get-IdentityClient|Remove-IdentityClient
-            Get-AspNetIdentityUser|ForEach-Object {
-                Get-AspNetIdentityUserClaim -UserName $_.UserName|Remove-AspNetIdentityUserClaim -UserName $_.UserName
-            }
-            Get-AspNetIdentityUser|Remove-AspNetIdentityUser
+            clean_configurationstore
+            clean_aspidentitystore
         }
 
         $scope = Set-IdentityApiScope -Name api1 
@@ -31,18 +26,25 @@ Describe "Protecting an API using resource owner flow" {
             $api.Name | Should -Be "api1"
             $api.Scopes | Should -Be "api1"
         }
+    }
 
+    Context "Creating the OpenId identity resource representing the 'sub' claim" {
         $openid = [IdentityServer4.Models.IdentityResources+OpenId]::new() | Set-IdentityResource 
         It "Define the openid identity resource with claim 'sub'" {
             $openid|Should -Not -Be $null
             $openid.Name | Should -Be "openid"
             $openid.UserClaims | Should -Be "sub"
         }
-
+    }
+     
+    Context "Creating the Profile indentit resource representing the user profile claims" {
         $profile = [IdentityServer4.Models.IdentityResources+Profile]::new() | Set-IdentityResource
         It "define the identity resource 'profile' with the predefined claims"  {
             $profile.UserClaims|Should -Be @("name","family_name","given_name","middle_name","nickname","preferred_username","profile","picture","website","gender","birthdate","zoneinfo","locale","updated_at")
         }
+    }
+
+    Context "Configuration of the client acessing the API" { 
 
         $secretHash = "secret"|sha256base64
         $clientSecret = New-IdentitySecret -Value $secretHash
@@ -58,6 +60,9 @@ Describe "Protecting an API using resource owner flow" {
         It "Client has access to the proctected api (api1) and the scopes openid and profile" {
             $client.AllowedScopes | Should -Be @("api1","openid","profile")
         }
+    }
+
+    Context "Defineing the resource owner user" {
 
         $resourceOwner = Set-AspNetIdentityUser -UserName alice -NewPassword "Pass123$"
         It "Create user alice with password" {
@@ -75,9 +80,11 @@ Describe "Protecting an API using resource owner flow" {
         )
         $aliceClaims|Set-AspNetIdentityUserClaim -UserName "alice"
     }
-    Context "Alices Token" {
+
+    Context "Request token for ap1" {
+
         $discoveryDoc = Invoke-IdentityDiscoveryEndpoint 
-        $token = Invoke-IdentityTokenEndpoint -ClientId "client" -ClientSecret "secret" -Scope "api1" -UserName "alice" -Password "Pass123$" -Endpoint $discoveryDoc.TokenEndpoint -TokenVariableName "tokenvar"
+        $token = Invoke-IdentityTokenEndpoint -ClientId "client" -ClientSecret "secret" -Scopes "api1" -UserName "alice" -Password "Pass123$" -Endpoint $discoveryDoc.TokenEndpoint -TokenVariableName "tokenvar"
         It "was returned" {
             $token | Should -Not -Be $null
         }
@@ -85,9 +92,11 @@ Describe "Protecting an API using resource owner flow" {
             $tokenvar|Should -Be $token.AccessToken
         }
     }
+
     Context "Alices UserInfo" {
+        
         $discoveryDoc = Invoke-IdentityDiscoveryEndpoint 
-        $token = Invoke-IdentityTokenEndpoint -ClientId "client" -ClientSecret "secret" -Scope "api1 openid profile" -UserName "alice" -Password "Pass123$" -Endpoint $discoveryDoc.TokenEndpoint
+        $token = Invoke-IdentityTokenEndpoint -ClientId "client" -ClientSecret "secret" -Scopes @("api1","openid","profile") -UserName "alice" -Password "Pass123$" -Endpoint $discoveryDoc.TokenEndpoint
         $userInfo = Invoke-IdentityUserInfoEndpoint -Endpoint $discoveryDoc.UserInfoEndpoint -Token $token.AccessToken
         It "User info could be retrieved" {
             $userInfo | Should -Not -Be $null
@@ -107,7 +116,7 @@ Describe "Protecting an API using resource owner flow" {
             $userInfo|claim_value -type "website" | Should -Be "http://alice.com"
             $userInfo|claim_value -type "preferred_username" | Should -Be "alice"
         }
-        It "doesn't contain nin-profile claims" {
+        It "doesn't contain non-profile claims" {
             $userInfo|claim_value -type "email" | Should -Be $null
             $userInfo|claim_value -type "email_verified" | Should -Be $null
         }

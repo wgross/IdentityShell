@@ -22,7 +22,7 @@ namespace IdentityShell.Cmdlets.IdentityEndpoints
 
         [Parameter(ParameterSetName = "clientcredentials", Mandatory = true)]
         [Parameter(ParameterSetName = "password", Mandatory = true)]
-        public string Scope { get; set; }
+        public string[] Scopes { get; set; }
 
         #region Password Authorizaion
 
@@ -46,7 +46,7 @@ namespace IdentityShell.Cmdlets.IdentityEndpoints
                     Address = this.EndpointUrl,
                     ClientId = this.ClientId,
                     ClientSecret = this.ClientSecret,
-                    Scope = this.Scope
+                    Scope = string.Join(" ", this.Scopes)
                 };
 
                 this.ProcessTokenResponse(Await(new HttpClient().RequestClientCredentialsTokenAsync(tokenRequest)));
@@ -60,7 +60,7 @@ namespace IdentityShell.Cmdlets.IdentityEndpoints
                     ClientSecret = this.ClientSecret,
                     UserName = this.UserName,
                     Password = this.Password,
-                    Scope = this.Scope,
+                    Scope = string.Join(" ", this.Scopes)
                 };
 
                 this.ProcessTokenResponse(Await(new HttpClient().RequestPasswordTokenAsync(tokenRequest)));
