@@ -24,7 +24,7 @@ namespace IdentityShell.Cmdlets.IdentityEndpoints
         [Parameter(ParameterSetName = "password", Mandatory = true)]
         public string[] Scopes { get; set; }
 
-        #region Password Authorizaion
+        #region Password Authorization
 
         [Parameter(ParameterSetName = "password", Mandatory = true)]
         public string UserName { get; set; }
@@ -32,7 +32,7 @@ namespace IdentityShell.Cmdlets.IdentityEndpoints
         [Parameter(ParameterSetName = "password")]
         public string Password { get; set; }
 
-        #endregion Password Authorizaion
+        #endregion Password Authorization
 
         [Parameter()]
         public string TokenVariableName { get; set; }

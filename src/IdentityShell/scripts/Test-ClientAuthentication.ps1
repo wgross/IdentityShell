@@ -46,24 +46,35 @@ Describe "Protecting an API using client credentials" {
         }
     }
 
-    Context "Request client access token" {
+    Context "Requesting client access token" {
 
         $discoveryDoc = Invoke-IdentityDiscoveryEndpoint         
         $token = Invoke-IdentityTokenEndpoint -ClientId "client" -ClientSecret "secret" -Scopes "api1" -Endpoint $discoveryDoc.TokenEndpoint -TokenVariableName "tokenvar"
-        It "retrieved a token from IdentityServer" {
+        It "retrieves an access token from IdentityServer" {
             $token | Should -Not -Be $null
         }
-        It "set the given token varaible" {
+        It "sets the given token varaible" {
             $tokenvar|Should -Be $token.AccessToken
         }
     }
+
+    # Context "Requesting token metadata" {
+    #     $discoveryDoc = Invoke-IdentityDiscoveryEndpoint         
+    #     $token = Invoke-IdentityTokenEndpoint -ClientId "client" -ClientSecret "secret" -Scopes "api1" -Endpoint $discoveryDoc.TokenEndpoint
+    #     $tokenIntrospection = Invoke-IdentityTokenIntrospectionEndpoint  -ApiResource "api1" -Endpoint $discoveryDoc.IntrospectionEndpoint -Token $token.AccessToken
+    #     It "retrieves a token introspection information from IdentityServer" {
+    #         $tokenIntrospection.IsError | Should -Be $false
+    #         $tokenIntrospection | Should -Not -Be $null
+    #     }
+    # }
 
     Context "Requesting user info" {
 
         $discoveryDoc = Invoke-IdentityDiscoveryEndpoint 
         $token = Invoke-IdentityTokenEndpoint -ClientId "client" -ClientSecret "secret" -Scopes "api1" -Endpoint $discoveryDoc.TokenEndpoint
+        $userInfo = Invoke-IdentityUserInfoEndpoint -Endpoint $discoveryDoc.UserInfoEndpoint -Token $token.AccessToken
         It "IdentityServer provides a user info data" {
-            $userInfo = Invoke-IdentityUserInfoEndpoint -Endpoint $discoveryDoc.UserInfoEndpoint -Token $token.AccessToken
+            $userInfo.IsError|Should -Be $false
             $userInfo | Should -Not -Be $null
         }
     }

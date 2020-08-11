@@ -7,7 +7,6 @@ namespace IdentityShell.Cmdlets.Operation
     {
         public static InitialSessionState AddIdentityOperationCommands(this InitialSessionState sessionState)
         {
-            sessionState.ExecutionPolicy = ExecutionPolicy.Unrestricted;
             sessionState.Commands.Add(new SessionStateCmdletEntry("Get-IdentityPersistedGrant", typeof(GetIdentityPersistedGrantCommand), string.Empty));
             sessionState.Commands.Add(new SessionStateCmdletEntry("Remove-IdentityPersistedGrant", typeof(RemoveIdentityPersistedGrantCommand), string.Empty));
 

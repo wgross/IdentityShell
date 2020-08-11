@@ -1,12 +1,14 @@
 ﻿// Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
+using IdentityShell.Cmdlets;
 using IdentityShell.Cmdlets.AspNetIdentity;
 using IdentityShell.Cmdlets.Common;
 using IdentityShell.Cmdlets.Configuration;
 using IdentityShell.Cmdlets.IdentityEndpoints;
 using IdentityShell.Cmdlets.Operation;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.PowerShell;
 using Serilog;
@@ -53,8 +55,9 @@ namespace IdentityShell
                     .AddCommonCommands()
                     .AddEndpointCommands()
                     .AddAspIdentityCommands();
-
+                iss.ExecutionPolicy = ExecutionPolicy.Unrestricted;
                 iss.Variables.Add(new SessionStateVariableEntry("webHostTask", webHostTask, "Task executing the webhost"));
+
                 ConsoleShell.Start(iss, "IdentityShell", "", args);
             }
             finally
@@ -75,6 +78,7 @@ namespace IdentityShell
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration(cfg => cfg.AddInMemoryCollection(IdentityCommandConfgurationOverride.Default))
                 .UseSerilog()
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
