@@ -77,21 +77,24 @@ namespace IdentityShell
             }
             this.InitializeDatabase(app);
 
-            // uncomment if you want to add MVC
             app.UseStaticFiles();
+
             app.UseRouting();
+
+            app.UseAuthorization();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllerRoute(
+                    name: "default",
+                    pattern: "{controller=Home}/{action=Index}/{id?}");
+            });
 
             app.UseIdentityServer();
 
-            // uncomment, if you want to add MVC
-            app.UseAuthorization();
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapDefaultControllerRoute();
-            });
             AppServices = app.ApplicationServices;
 
-            // inject the scoipe factory in the cmdlet base class
+            // inject the scope factory in the cmdlet base class
             IdentityConfigurationCommandBase.GlobalServiceProvider = app.ApplicationServices;
         }
 

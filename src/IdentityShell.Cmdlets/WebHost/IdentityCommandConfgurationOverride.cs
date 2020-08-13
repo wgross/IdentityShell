@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace IdentityShell.Cmdlets
+namespace IdentityShell.Cmdlets.WebHost
 {
     public class IdentityCommandConfgurationOverride
     {

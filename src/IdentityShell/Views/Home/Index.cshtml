@@ -1,4 +1,6 @@
 @using System.Diagnostics
+@using Microsoft.AspNetCore.Hosting 
+@inject IWebHostEnvironment env
 
 @{
     var version = FileVersionInfo.GetVersionInfo(typeof(IdentityServer4.Hosting.IdentityServerMiddleware).Assembly.Location).ProductVersion.Split('+').First();
@@ -11,6 +13,8 @@
         <small class="text-muted">(version @version)</small>
     </h1>
 
+    <p>@env.ContentRootPath</p>
+    <p>@env.WebRootPath</p>
     <ul>
         <li>
             IdentityServer publishes a
