@@ -1,11 +1,6 @@
 Import-Module Pester
-. $PSScriptRoot/common.ps1
 
-filter sha256base64 {
-    $bytes = [System.Text.Encoding]::UTF8.getBytes($_)
-    $hash = [System.Security.Cryptography.HashAlgorithm]::Create("SHA256").ComputeHash($bytes)
-    [System.Convert]::ToBase64String($hash)
-}
+. $PSScriptRoot/common.ps1
 
 Describe "Protecting an API using client credentials" {
     
@@ -33,13 +28,13 @@ Describe "Protecting an API using client credentials" {
     Context "Configuration of the client acessing the API" {
 
         $secretHash = "secret"|sha256base64
-        $clientSecret=New-IdentitySecret -Value $secretHash
+        $clientSecret = New-IdentitySecret -Value $secretHash
         It "has a secret added to the client" {
             $clientSecret.Value|Should -Be $secretHash
         }
 
         $client = Set-IdentityClient -ClientId client -AllowedGrantTypes client_credentials -ClientSecrets $clientSecret -AllowedScopes "api1","openid"
-        It "rewqures a client with access to 'Ap1'" {
+        It "rewqures a client with access to 'Api1'" {
             $client.ClientSecrets.Length|Should -Be 1
             $client.ClientSecrets[0].Value|Should -Be $secretHash
             $client.AllowedScopes | Should -Be @("api1","openid")

@@ -1,10 +1,6 @@
 Import-Module Pester
+
 . $PSScriptRoot/common.ps1
-filter sha256base64 {
-    $bytes = [System.Text.Encoding]::UTF8.getBytes($_)
-    $hash = [System.Security.Cryptography.HashAlgorithm]::Create("SHA256").ComputeHash($bytes)
-    [System.Convert]::ToBase64String($hash)
-}
 
 Describe "Protecting an API using resource owner flow" {
     

@@ -218,7 +218,7 @@ The configuraton is now finsihed. Please refer to [example-resource-owner.rest](
 
 ## Getting information about the logged in User
 
-OpenId defines an endoint to retrieve information about the logged in user. To prepare this teh default open id scopes 'openid' and 'profile' 
+OpenId defines an endoint to retrieve information about the logged in user. To prepare this the default open id scopes 'openid' and 'profile' 
 have to present in as an identity resource. Thes ecan be creates directly from the identit serves model:
 ```powershell
 PS> [IdentityServer4.Models.IdentityResources+OpenId]::new() | Set-IdentityResource 
@@ -295,4 +295,11 @@ AuthorizedScopes :
 Subject          :
 ```
 
+## [Protecting an Interactive Application with ASPNET Core](https://identityserver4.readthedocs.io/en/latest/quickstarts/2_interactive_aspnetcore.html#interactive-applications-with-asp-net-core)
 
+This section assumes the the steps to prepare the interactice application are dine as descrioed in the IdentityServer4 Documentations. 
+Since this indetitservre host is using port 5000 already, I've moved the exmaple app to port 5001.
+First this is to make the clinet known to the IdentityShell hosted IdentityServer4:
+```powershell
+PS> Set-IdentityClient -ClientId mvc -ClientSecrets (New-IdentitySecret -Value ("secret"|sha256base64)) -AllowedGrantTypes authorization_code -RedirectUris "http://localhost:5001/signin-oidc" -PostLogoutRedirectUris "http://localhost:5001/signout-callback-oidc" -AllowedScopes "openid","profile"
+```
