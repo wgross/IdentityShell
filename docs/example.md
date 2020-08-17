@@ -6,7 +6,7 @@ This protocol flow is used to grant access to a client software identified by a 
 
 ## [Defining an API Resource](https://docs.identityserver.io/en/latest/quickstarts/1_client_credentials.html#defining-an-api-resource)
 
-Beginning with IdentityServer4 v4.x teh Api Scopes are decoupled from the api resources. Th first sto in defineing an API is therefore to define a scope:
+Beginning with IdentityServer4 v4.x the Api Scopes are decoupled from the api resources. The first step of defining an API is therefore to define a scope:
 ```powershell
 PS> Set-IdentityApiScope -Name "api1"
 
@@ -20,8 +20,8 @@ ShowInDiscoveryDocument : True
 UserClaims              : {}
 Properties              : {}
 ```
-The cmdlet Get-IdentityApiScope allow to browse the avaliable api scopes.
-The api refers to the scope from above by its name. Every Api has to have at least one scope:
+The cmdlet Get-IdentityApiScope allow to browse the available api scopes.
+The api refers to the scope by its name. Every api has to have at least one scope:
 ```powershell
 PS> Set-IdentityApiResource -Name "api1" -DisplayName "My Api" -Scopes "api1"
 
@@ -111,7 +111,7 @@ DeviceCodeLifetime                : 300
 AllowedCorsOrigins                : {}
 Properties                        : {}
 ```
-To inspect the client use the cmdlet Get-IdentityClient:
+To inspect the client use the cmdlet Get-IdentityClient. It will list all client from the configuration store:
 ```powershell
 PS> Get-IdentityClient
 
