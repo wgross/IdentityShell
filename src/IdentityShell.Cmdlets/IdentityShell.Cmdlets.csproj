@@ -6,15 +6,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="IdentityModel" Version="4.3.1" />
-    <PackageReference Include="IdentityServer4.EntityFramework.Storage" Version="4.0.2" />
-    <PackageReference Include="IdentityServer4.Storage" Version="4.0.2" />
+    <PackageReference Include="IdentityModel" Version="4.6.0" />
+    <PackageReference Include="IdentityServer4" Version="4.1.1" />
+    <PackageReference Include="IdentityServer4.EntityFramework.Storage" Version="4.1.1" />
+    <PackageReference Include="IdentityServer4.Storage" Version="4.1.1" />
     <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.0.2" />
     <PackageReference Include="System.Management.Automation" Version="7.0.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\IdentityServer4\src\IdentityServer4\src\IdentityServer4.csproj" />
     <ProjectReference Include="..\IdentityShell.AspNetIdentityStore\IdentityShell.AspNetIdentityStore.csproj" />
   </ItemGroup>
 

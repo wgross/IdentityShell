@@ -60,10 +60,11 @@ namespace IdentityShell.Cmdlets.AspNetIdentity
             {
                 if (this.MyInvocation.BoundParameters.ContainsKey(nameof(NewPassword)))
                 {
-                    this.CheckIdentityResult(this.UserManager.ChangePasswordAsync(user, this.CurrentPassword, this.NewPassword));
+                    this.CheckIdentityResult(() => this.UserManager.ChangePasswordAsync(user, this.CurrentPassword, this.NewPassword));
                 }
+
                 this.SetBoundParameters(user);
-                this.CheckIdentityResult(this.UserManager.UpdateAsync(user));
+                this.CheckIdentityResult(() => this.UserManager.UpdateAsync(user));
             }
 
             this.WriteObject(user);

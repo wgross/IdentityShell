@@ -33,7 +33,7 @@ Describe "Protecting an API using resource owner flow" {
         }
     }
      
-    Context "Creating the Profile indentit resource representing the user profile claims" {
+    Context "Creating the Profile indentity resource representing the user profile claims" {
         $profile = [IdentityServer4.Models.IdentityResources+Profile]::new() | Set-IdentityResource
         It "define the identity resource 'profile' with the predefined claims"  {
             $profile.UserClaims|Should -Be @("name","family_name","given_name","middle_name","nickname","preferred_username","profile","picture","website","gender","birthdate","zoneinfo","locale","updated_at")
@@ -58,7 +58,7 @@ Describe "Protecting an API using resource owner flow" {
         }
     }
 
-    Context "Defineing the resource owner user" {
+    Context "Defining the resource owner user" {
 
         $resourceOwner = Set-AspNetIdentityUser -UserName alice -NewPassword "Pass123$"
         It "Create user alice with password" {

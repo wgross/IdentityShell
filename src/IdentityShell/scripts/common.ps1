@@ -1,5 +1,5 @@
 function clean_configurationstore {
-    Get-IdentityApiScope|Remove-identityApiScope
+    Get-IdentityApiScope|Remove-IdentityApiScope
     Get-IdentityApiResource|Remove-IdentityApiResource
     Get-IdentityResource|Remove-IdentityResource
     Get-IdentityClient|Remove-IdentityClient

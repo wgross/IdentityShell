@@ -75,24 +75,20 @@ namespace IdentityShell
             {
                 app.UseDeveloperExceptionPage();
             }
-            this.InitializeDatabase(app);
-
+            
             app.UseStaticFiles();
-
             app.UseRouting();
-
+            app.UseIdentityServer();
             app.UseAuthorization();
-
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllerRoute(
-                    name: "default",
-                    pattern: "{controller=Home}/{action=Index}/{id?}");
+                endpoints.MapDefaultControllerRoute();
             });
 
-            app.UseIdentityServer();
-
             AppServices = app.ApplicationServices;
+
+            this.InitializeDatabase(app);
+
 
             // inject the scope factory in the cmdlet base class
             IdentityConfigurationCommandBase.GlobalServiceProvider = app.ApplicationServices;

@@ -13,7 +13,7 @@ namespace IdentityShell.Cmdlets
     {
         public static IServiceProvider GlobalServiceProvider { protected get; set; }
 
-        protected static T Await<T>(Task<T> task) => task.GetAwaiter().GetResult();
+        protected static T Await<T>(Task<T> task) => AsyncHelper.AwaitWithoutOriginalContext(task);
 
         protected static ICollection<string> Collection(object[] items) => items.Select(i => i.ToString()).ToHashSet();
     }
