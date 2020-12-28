@@ -14,6 +14,7 @@ using Microsoft.PowerShell;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
+using System.Linq;
 using System.Management.Automation.Runspaces;
 
 namespace IdentityShell
@@ -40,29 +41,36 @@ namespace IdentityShell
                 .CreateLogger();
 
             var webHostControl = new IdentityShellWebHostControl();
-            RestartIdentityServerCommand.WebHostControl = webHostControl;
 
-            try
+            if (args.Contains("/noconsole"))
             {
-                webHostControl.Start(args);
-
-                var iss = InitialSessionState
-                    .CreateDefault()
-                    .AddIdentityConfigurationCommands()
-                    .AddIdentityOperationCommands()
-                    .AddCommonCommands()
-                    .AddEndpointCommands()
-                    .AddAspIdentityCommands()
-                    .AddWebHostCommands();
-
-                iss.ExecutionPolicy = ExecutionPolicy.Unrestricted;
-
-                ConsoleShell.Start(iss, "IdentityShell", "", args);
+                webHostControl.Run(args);
             }
-            finally
+            else
             {
-                webHostControl.Stop();
-                Log.CloseAndFlush();
+                try
+                {
+                    RestartIdentityServerCommand.WebHostControl = webHostControl;
+                    webHostControl.Start(args);
+
+                    var iss = InitialSessionState
+                        .CreateDefault()
+                        .AddIdentityConfigurationCommands()
+                        .AddIdentityOperationCommands()
+                        .AddCommonCommands()
+                        .AddEndpointCommands()
+                        .AddAspIdentityCommands()
+                        .AddWebHostCommands();
+
+                    iss.ExecutionPolicy = ExecutionPolicy.Unrestricted;
+
+                    ConsoleShell.Start(iss, "IdentityShell", "", args);
+                }
+                finally
+                {
+                    webHostControl.Stop();
+                    Log.CloseAndFlush();
+                }
             }
             return 0;
         }
