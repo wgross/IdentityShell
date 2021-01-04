@@ -256,7 +256,7 @@ namespace IdentityShell.Cmdlets.Test
 
             var clientSecretExpiration = DateTime.Now;
 
-            var pso = ArrangeClient(clientSecretExpiration);
+            PSObject pso = ArrangeClient(clientSecretExpiration);
 
             // ACT
 
@@ -275,7 +275,7 @@ namespace IdentityShell.Cmdlets.Test
         public void IdentityShell_modifies_piped_Client()
         {
             var clientSecretExpiration = DateTime.Now;
-            var pso = ArrangeClient(clientSecretExpiration);
+            PSObject pso = ArrangeClient(clientSecretExpiration);
 
             // ACT
 
@@ -297,7 +297,7 @@ namespace IdentityShell.Cmdlets.Test
             // ARRANGE
 
             var clientSecretExpiration = DateTime.Now;
-            var pso = ArrangeClient(clientSecretExpiration);
+            PSObject pso = ArrangeClient(clientSecretExpiration);
 
             // ACT
 

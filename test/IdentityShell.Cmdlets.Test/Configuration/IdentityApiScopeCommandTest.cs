@@ -1,8 +1,8 @@
-﻿using IdentityShell.Cmdlets;
+﻿using IdentityServer4.Models;
 using IdentityShell.Cmdlets.Configuration;
-using IdentityShell.Cmdlets.Test;
 using System.Collections;
 using System.Linq;
+using System.Management.Automation;
 using Xunit;
 
 namespace IdentityShell.Cmdlets.Test.Configuration
@@ -41,7 +41,7 @@ namespace IdentityShell.Cmdlets.Test.Configuration
         {
             // ARRANGE
 
-            var pso = this.ArrangeApiScope();
+            PSObject pso = this.ArrangeApiScope();
 
             // ACT
 
@@ -57,7 +57,7 @@ namespace IdentityShell.Cmdlets.Test.Configuration
         {
             // ARRANGE
 
-            var pso = this.ArrangeApiScope();
+            PSObject pso = this.ArrangeApiScope();
 
             // ACT
 
@@ -65,7 +65,29 @@ namespace IdentityShell.Cmdlets.Test.Configuration
 
             var result = this.PowerShell.Invoke().Single();
 
+            // ASSERT
+
             AssertApiScope(result);
+        }
+
+        [Fact]
+        public void IdentityShell_modifies_pipes_ApiScope()
+        {
+            // ARRANGE
+
+            PSObject pso = this.ArrangeApiScope();
+
+            // ACT
+
+            var result = this.PowerShell
+                .AddCommandEx<SetIdentityApiScopeCommand>(cmd => cmd.AddParameter(c => c.Description, "description-changed"))
+                .Invoke(Array(pso))
+                .Single();
+
+            // ASSERT
+
+            Assert.False(this.PowerShell.HadErrors);
+            Assert.Equal("description-changed", result.As<ApiScope>().Description);
         }
 
         [Fact]
@@ -73,7 +95,7 @@ namespace IdentityShell.Cmdlets.Test.Configuration
         {
             // ARRANGE
 
-            var pso = this.ArrangeApiScope();
+            PSObject pso = this.ArrangeApiScope();
 
             // ACT
 

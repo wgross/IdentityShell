@@ -96,7 +96,7 @@ namespace IdentityShell.Cmdlets.Test
                          .AddParameter(c => c.UserClaims, new[] { "claim" });
                  });
 
-            var pso = this.PowerShell.Invoke().Single();
+            PSObject pso = this.PowerShell.Invoke().Single();
             this.PowerShell.Commands.Clear();
             return pso;
         }

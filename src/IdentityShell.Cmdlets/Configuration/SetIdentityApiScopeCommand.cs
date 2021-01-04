@@ -10,7 +10,7 @@ namespace IdentityShell.Cmdlets.Configuration
     [OutputType(typeof(ApiScope))]
     public sealed class SetIdentityApiScopeCommand : IdentityConfigurationCommandBase
     {
-        [Parameter(Mandatory = true)]
+        [Parameter(Mandatory = true, ValueFromPipelineByPropertyName = true)]
         public string Name { get; set; }
 
         [Parameter()]
@@ -40,14 +40,21 @@ namespace IdentityShell.Cmdlets.Configuration
         protected override void ProcessRecord()
         {
             var apiScopeEntity = this.QueryApiScopes().SingleOrDefault(c => c.Name == this.Name);
-            ApiScope apiScope = new ApiScope();
             if (apiScopeEntity is null)
             {
-                apiScope = this.SetBoundParameters(apiScope);
-                this.Context.ApiScopes.Add(apiScope.ToEntity());
+                var apiScopeModel = this.SetBoundParameters(new ApiScope());
+                this.Context.ApiScopes.Add(apiScopeModel.ToEntity());
+                this.Context.SaveChanges();
+                this.WriteObject(apiScopeModel);
             }
-            this.Context.SaveChanges();
-            this.WriteObject(apiScope);
+            else
+            {
+                var apiScopeModel = apiScopeEntity.ToModel();
+                apiScopeModel = this.SetBoundParameters(apiScopeModel);
+                apiScopeModel.ToEntity(apiScopeEntity);
+                this.Context.SaveChanges();
+                this.WriteObject(apiScopeModel);
+            }
         }
 
         private ApiScope SetBoundParameters(ApiScope apiScope)

@@ -41,9 +41,9 @@ namespace IdentityShell.Cmdlets
                 PSObject pso => pso.ImmediateBaseObject switch
                 {
                     T underlying => underlying,
-                    _ => throw new PSArgumentException($"Underlying type is {pso.ImmediateBaseObject.GetType()}, expected is {typeof(Secret)}")
+                    _ => throw new PSArgumentException($"Underlying type is {pso.ImmediateBaseObject.GetType()}, expected is {typeof(T)}")
                 },
-                _ => throw new PSArgumentException($"Argument type is {argumentValue.GetType()}, expected is {typeof(Secret)} or {typeof(PSObject)}")
+                _ => throw new PSArgumentException($"Argument type is {argumentValue.GetType()}, expected is {typeof(T)} or {typeof(PSObject)}")
             };
         }
     }
