@@ -1,12 +1,15 @@
 # IdentityShell
-A hosts an IdentityServer4 and a PowerShell in the same console process to allow interactive modification of the identity servers config.
+
+..hosts an IdentityServer4 and a PowerShell in the same console process to allow interactive modification of the identity servers config.
 The project is meant to be a playground for authentication/authorization configuration.
 
-Also the exectable can be started with the parameter /noconsole to behave like a normal net core service.
+On Startup a powershell console opens which has cmdlets configured to manipulate the configuration, operation and identity stores. The endpints opf the identitysrver are reachable at port 5000 by default. The cmdlets also allow to restart the hosted IdentityServer4 endpoints without quitting the process. The executable can be started with the parameter '/noconsole' to behave like a normal net core service.
 
-The confguration is made persistent using the Entity Framework based persistence for operation and configuartion data provided for IdentityServer4 and Microsofts AspNetIdentity persistence.
-On Startup a powershell console opens which has cmdlets configured to manipulate the configuration, operation and identity stores. It also allows to restart the hosted IdentityServer4 endpoints without quiting the process.
-As persistence an embedded Sqlite database is used.
+The configuration is made persistent using the Entity Framework based persistence for operation and configuration data provided for IdentityServer4 and Microsofts AspNetIdentity persistence using Sqlite.
+
+## Building
+
+Just clone the repository and 'dotnet build' the solution in the projects root should do the trick. 
 
 ## Usage examples
 [here](docs/example.md)
