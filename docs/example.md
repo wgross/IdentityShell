@@ -294,12 +294,3 @@ RequestedScopes  : {api1}
 AuthorizedScopes :
 Subject          :
 ```
-
-## [Protecting an Interactive Application with ASPNET Core](https://identityserver4.readthedocs.io/en/latest/quickstarts/2_interactive_aspnetcore.html#interactive-applications-with-asp-net-core)
-
-This section assumes the the steps to prepare the interactice application are dine as descrioed in the IdentityServer4 Documentations. 
-Since this indetitservre host is using port 5000 already, I've moved the exmaple app to port 5001.
-First this is to make the clinet known to the IdentityShell hosted IdentityServer4:
-```powershell
-PS> Set-IdentityClient -ClientId mvc -ClientSecrets (New-IdentitySecret -Value ("secret"|sha256base64)) -AllowedGrantTypes authorization_code -RedirectUris "http://localhost:5001/signin-oidc" -PostLogoutRedirectUris "http://localhost:5001/signout-callback-oidc" -AllowedScopes "openid","profile"
-```
