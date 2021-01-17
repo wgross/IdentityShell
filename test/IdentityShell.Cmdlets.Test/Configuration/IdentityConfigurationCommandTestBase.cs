@@ -1,14 +1,11 @@
 ﻿using IdentityServer4.EntityFramework.DbContexts;
 using IdentityServer4.Models;
-using IdentityShell.Cmdlets;
 using IdentityShell.Cmdlets.Configuration;
-using IdentityShell.Cmdlets.Test;
-using Microsoft.EntityFrameworkCore;
+using IdentityShell.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
@@ -19,16 +16,12 @@ namespace IdentityShell.Cmdlets.Test
 {
     public abstract class IdentityConfigurationCommandTestBase : IDisposable
     {
-        private readonly string connectionString;
         private readonly ServiceProvider serviceProvider;
+        private InMemoryDbContextOptionsBuilder inMemorySqliteDb;
 
         public IdentityConfigurationCommandTestBase()
         {
-            string createConnectionString(Guid instanceId, string path) => $@"Data Source={path}\IdentityShell.Configuration.{instanceId}.db";
-
-            this.connectionString = createConnectionString(
-                instanceId: Guid.NewGuid(),
-                path: Path.GetDirectoryName(typeof(IdentityClientCommandTest).GetTypeInfo().Assembly.Location));
+            this.inMemorySqliteDb = new InMemoryDbContextOptionsBuilder(nameof(ConfigurationDbContext));
 
             var serviceCollection = new ServiceCollection();
 
@@ -36,9 +29,8 @@ namespace IdentityShell.Cmdlets.Test
                 .AddIdentityServer()
                 .AddConfigurationStore(options =>
                 {
-                    string migrationAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
-
-                    options.ConfigureDbContext = builder => builder.UseSqlite(this.connectionString, sql => sql.MigrationsAssembly(migrationAssembly));
+                    options.ConfigureDbContext = opts => this.inMemorySqliteDb.CreateOptions(opts,
+                        sqliteOpts => sqliteOpts.MigrationsAssembly(typeof(Startup).GetTypeInfo().Assembly.GetName().Name));
                 });
 
             this.serviceProvider = serviceCollection.BuildServiceProvider();
@@ -54,15 +46,14 @@ namespace IdentityShell.Cmdlets.Test
 
         public void Dispose()
         {
-            this.serviceProvider
-                .CreateScope()
-                    .ServiceProvider
-                    .GetRequiredService<ConfigurationDbContext>()
-                        .Database
-                        .EnsureDeleted();
+            this.PowerShell?.Dispose();
+            this.PowerShell = null;
+
+            this.inMemorySqliteDb?.Dispose();
+            this.inMemorySqliteDb = null;
         }
 
-        public PowerShell PowerShell { get; }
+        public PowerShell PowerShell { get; private set; }
 
         protected static object[] Array(params object[] items) => items;
 

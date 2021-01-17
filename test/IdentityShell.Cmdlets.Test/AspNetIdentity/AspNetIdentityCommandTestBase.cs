@@ -1,14 +1,12 @@
 ﻿using IdentityServerAspNetIdentity.Data;
 using IdentityServerAspNetIdentity.Models;
-using IdentityShell.Cmdlets;
 using IdentityShell.Cmdlets.AspNetIdentity;
 using IdentityShell.Cmdlets.Common;
+using IdentityShell.Hosting;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
-using System.IO;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Reflection;
@@ -19,28 +17,23 @@ namespace IdentityShell.Cmdlets.Test.AspNetIdentity
     [Collection(nameof(IdentityCommandBase.GlobalServiceProvider))]
     public abstract class AspNetIdentityCommandTestBase
     {
-        private readonly string connectionString;
         private readonly ServiceProvider serviceProvider;
+        private InMemoryDbContextOptionsBuilder inMemorySqliteDb;
 
         public AspNetIdentityCommandTestBase()
         {
-            string createConnectionString(Guid instanceId, string path) => $@"Data Source={path}\IdentityShell.AspNetIdentity.{instanceId}.db";
-
-            this.connectionString = createConnectionString(
-                instanceId: Guid.NewGuid(),
-                path: Path.GetDirectoryName(typeof(AspNetIdentityCommandTestBase).GetTypeInfo().Assembly.Location));
+            this.inMemorySqliteDb = new InMemoryDbContextOptionsBuilder($"{nameof(ApplicationDbContext)}-{Guid.NewGuid()}");
 
             var serviceCollection = new ServiceCollection();
             serviceCollection
                 .AddLogging(builder => builder.AddDebug());
 
             serviceCollection
-              .AddDbContext<ApplicationDbContext>(options =>
-              {
-                  string migrationAssembly = typeof(ApplicationDbContext).GetTypeInfo().Assembly.GetName().Name;
-
-                  options.UseSqlite(this.connectionString, sql => sql.MigrationsAssembly(migrationAssembly));
-              });
+                .AddDbContext<ApplicationDbContext>(opts =>
+                {
+                    this.inMemorySqliteDb.CreateOptions(opts,
+                        sqlitsopts => sqlitsopts.MigrationsAssembly(typeof(ApplicationDbContext).GetTypeInfo().Assembly.GetName().Name));
+                });
 
             serviceCollection
                 .AddIdentity<ApplicationUser, IdentityRole>()
@@ -62,15 +55,14 @@ namespace IdentityShell.Cmdlets.Test.AspNetIdentity
 
         public void Dispose()
         {
-            this.serviceProvider
-                .CreateScope()
-                    .ServiceProvider
-                    .GetRequiredService<ApplicationDbContext>()
-                        .Database
-                        .EnsureDeleted();
+            this.PowerShell?.Dispose();
+            this.PowerShell = null;
+
+            this.inMemorySqliteDb?.Dispose();
+            this.inMemorySqliteDb = null;
         }
 
-        public PowerShell PowerShell { get; }
+        public PowerShell PowerShell { get; private set; }
 
         protected static object[] Array(params object[] items) => items;
     }

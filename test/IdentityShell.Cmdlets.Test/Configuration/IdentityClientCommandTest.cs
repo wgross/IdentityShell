@@ -1,6 +1,4 @@
-using IdentityServer4.EntityFramework.DbContexts;
 using IdentityServer4.Models;
-using IdentityShell.Cmdlets;
 using IdentityShell.Cmdlets.Configuration;
 using System;
 using System.Collections;
@@ -10,7 +8,7 @@ using System.Management.Automation;
 using System.Security.Claims;
 using Xunit;
 
-namespace IdentityShell.Cmdlets.Test
+namespace IdentityShell.Cmdlets.Test.Configuration
 {
     [Collection(nameof(IdentityCommandBase.GlobalServiceProvider))]
     public class IdentityClientCommandTest : IdentityConfigurationCommandTestBase

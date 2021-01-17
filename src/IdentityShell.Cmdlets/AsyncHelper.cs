@@ -110,6 +110,12 @@ namespace IdentityShell.Cmdlets
               .GetResult();
         }
 
+        /// <summary>
+        /// Await the result of an async method from an sync method which can't use await keyword
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="task"></param>
+        /// <returns></returns>
         public static T AwaitWithoutOriginalContext<T>(Task<T> task)
         {
             return task
@@ -118,6 +124,12 @@ namespace IdentityShell.Cmdlets
                 .GetResult();
         }
 
+        /// <summary>
+        /// Await the return of an async method from an sync method which can't use await keyword
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="task"></param>
+        /// <returns></returns>
         public static void AwaitWithoutOriginalContext<T>(Task task)
         {
             task

@@ -1,11 +1,7 @@
 ﻿using IdentityServer4.EntityFramework.DbContexts;
-using IdentityShell.Cmdlets;
-using IdentityShell.Cmdlets.Configuration;
 using IdentityShell.Cmdlets.Operation;
-using Microsoft.EntityFrameworkCore;
+using IdentityShell.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.IO;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Reflection;
@@ -14,16 +10,12 @@ namespace IdentityShell.Cmdlets.Test.Operation
 {
     public class IdentityOperationCommandTestBase
     {
-        private readonly string connectionString;
         protected readonly ServiceProvider serviceProvider;
+        private InMemoryDbContextOptionsBuilder inMemorySqliteDb;
 
         public IdentityOperationCommandTestBase()
         {
-            string createConnectionString(Guid instanceId, string path) => $@"Data Source={path}\IdentityShell.Operation.{instanceId}.db";
-
-            this.connectionString = createConnectionString(
-                instanceId: Guid.NewGuid(),
-                path: Path.GetDirectoryName(typeof(IdentityClientCommandTest).GetTypeInfo().Assembly.Location));
+            this.inMemorySqliteDb = new InMemoryDbContextOptionsBuilder(nameof(PersistedGrantDbContext));
 
             var serviceCollection = new ServiceCollection();
 
@@ -31,9 +23,8 @@ namespace IdentityShell.Cmdlets.Test.Operation
                 .AddIdentityServer()
                 .AddOperationalStore(options =>
                 {
-                    string migrationAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
-
-                    options.ConfigureDbContext = builder => builder.UseSqlite(this.connectionString, sql => sql.MigrationsAssembly(migrationAssembly));
+                    options.ConfigureDbContext = opts => this.inMemorySqliteDb.CreateOptions(opts,
+                        sqliteOpts => sqliteOpts.MigrationsAssembly(typeof(Startup).GetTypeInfo().Assembly.GetName().Name));
                 });
 
             this.serviceProvider = serviceCollection.BuildServiceProvider();
@@ -49,15 +40,14 @@ namespace IdentityShell.Cmdlets.Test.Operation
 
         public void Dispose()
         {
-            this.serviceProvider
-                .CreateScope()
-                    .ServiceProvider
-                    .GetRequiredService<PersistedGrantDbContext>()
-                        .Database
-                        .EnsureDeleted();
+            this.PowerShell?.Dispose();
+            this.PowerShell = null;
+
+            this.inMemorySqliteDb?.Dispose();
+            this.inMemorySqliteDb = null;
         }
 
-        public PowerShell PowerShell { get; }
+        public PowerShell PowerShell { get; private set; }
 
         protected static object[] Array(params object[] items) => items;
     }

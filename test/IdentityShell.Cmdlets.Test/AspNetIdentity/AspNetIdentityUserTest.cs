@@ -1,6 +1,5 @@
 ﻿using IdentityModel;
 using IdentityServerAspNetIdentity.Models;
-using IdentityShell.Cmdlets;
 using IdentityShell.Cmdlets.AspNetIdentity;
 using System;
 using System.Linq;
@@ -83,9 +82,9 @@ namespace IdentityShell.Cmdlets.Test.AspNetIdentity
         [Fact]
         public void IdentityShell_creates_user()
         {
-            // ARRANGE
+            // ACT
 
-            var result = ArrangeAspNetIdentityUser();
+            var result = this.ArrangeAspNetIdentityUser();
 
             // ASSERT
 

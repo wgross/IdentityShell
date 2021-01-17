@@ -13,7 +13,6 @@ namespace IdentityShell.Cmdlets.AspNetIdentity
         public string UserName { get; set; }
 
         [Parameter]
-        [ValidateNotNullOrEmpty]
         public string NewPassword { get; set; }
 
         [Parameter]

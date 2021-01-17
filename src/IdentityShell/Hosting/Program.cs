@@ -17,7 +17,7 @@ using Serilog.Sinks.SystemConsole.Themes;
 using System.Linq;
 using System.Management.Automation.Runspaces;
 
-namespace IdentityShell
+namespace IdentityShell.Hosting
 {
     public class Program
     {

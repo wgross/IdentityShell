@@ -7,7 +7,7 @@ using System.Linq;
 using System.Management.Automation;
 using Xunit;
 
-namespace IdentityShell.Cmdlets.Test
+namespace IdentityShell.Cmdlets.Test.Configuration
 {
     [Collection(nameof(IdentityCommandBase.GlobalServiceProvider))]
     public class IdentityResourceCommandTest : IdentityConfigurationCommandTestBase

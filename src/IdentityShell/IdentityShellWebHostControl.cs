@@ -6,7 +6,7 @@ using Serilog;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace IdentityShell
+namespace IdentityShell.Hosting
 {
     public class IdentityShellWebHostControl : IWebHostControl
     {
@@ -37,7 +37,7 @@ namespace IdentityShell
         }
 
         #endregion Control interactive lifecycle
-
+         
         #region Non-interactive lifecycle
 
         public void Run(string[] args) => Build(args).Build().Run();

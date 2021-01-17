@@ -4,12 +4,23 @@
     <TargetFramework>net5.0</TargetFramework>
     <LanguageVersion>Latest</LanguageVersion>
     <OutputType>Exe</OutputType>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
   </PropertyGroup>
-  
+
   <ItemGroup>
+    <!--
+    Reference the propject from the local submodule to enable debugging of the open-id protocol implementation
+    -->
+    <ProjectReference Include="..\..\submodules\IdentityServer4\src\IdentityServer4\src\IdentityServer4.csproj" />
+    <!--
+    alternatively reference the current release as  a NuGet.
     <PackageReference Include="IdentityServer4" Version="4.1.1" />
+    -->
     <PackageReference Include="IdentityServer4.AspNetIdentity" Version="4.1.1" />
     <PackageReference Include="IdentityServer4.EntityFramework" Version="4.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="3.1.6">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -42,5 +53,4 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
 </Project>
