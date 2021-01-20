@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\IdentityShell\IdentityShell.csproj" />
+    <ProjectReference Include="..\Example.WebApi\Example.WebApi.csproj" />
   </ItemGroup>
 
 </Project>
