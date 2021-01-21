@@ -8,6 +8,7 @@ using IdentityShell.IdentityStore.Data.Migrations.IdentityServer.PersistedGrantD
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using System;
 using System.Reflection;
 
 namespace IdentityShell.IntegTest.TestServer
@@ -24,14 +25,15 @@ namespace IdentityShell.IntegTest.TestServer
 
         protected override void ConfigureAspNetIdentityDbContext(DbContextOptionsBuilder options)
         {
-            this.AspNetIdentityStore = new IdentityShell.Hosting.InMemoryDbContextOptionsBuilder(nameof(ApplicationDbContext));
+            this.AspNetIdentityStore ??= new IdentityShell.Hosting.InMemoryDbContextOptionsBuilder($"{nameof(ApplicationDbContext)}-{Guid.NewGuid()}");
+
             this.AspNetIdentityStore.CreateOptions(options,
                 sqlitsopts => sqlitsopts.MigrationsAssembly(typeof(CreateIdentitySchema).GetTypeInfo().Assembly.GetName().Name));
         }
 
         protected override void ConfigureIdentityServerConfigurationStore(ConfigurationStoreOptions options)
         {
-            this.IdentityServerConfigurationStore = new InMemoryDbContextOptionsBuilder(nameof(ConfigurationDbContext));
+            this.IdentityServerConfigurationStore ??= new InMemoryDbContextOptionsBuilder($"{nameof(ConfigurationDbContext)}-{Guid.NewGuid()}");
 
             options.ConfigureDbContext = builder => this.IdentityServerConfigurationStore.CreateOptions(builder,
                 sqliteOpts => sqliteOpts.MigrationsAssembly(typeof(InitialIdentityServerConfigurationDbMigration).GetTypeInfo().Assembly.GetName().Name));
@@ -39,7 +41,7 @@ namespace IdentityShell.IntegTest.TestServer
 
         protected override void ConfigureIdentityServerOperationalStore(OperationalStoreOptions options)
         {
-            this.IdentityServerOperationalStore = new InMemoryDbContextOptionsBuilder(nameof(PersistedGrantDbContext));
+            this.IdentityServerOperationalStore ??= new InMemoryDbContextOptionsBuilder($"{nameof(PersistedGrantDbContext)}-{Guid.NewGuid()}");
 
             options.ConfigureDbContext = builder => this.IdentityServerOperationalStore.CreateOptions(builder,
                 sqliteOpts => sqliteOpts.MigrationsAssembly(typeof(InitialIdentityServerPersistedGrantDbMigration).GetTypeInfo().Assembly.GetName().Name));

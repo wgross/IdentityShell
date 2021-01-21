@@ -15,6 +15,7 @@ namespace IdentityShell.IntegTest
     public class ExampleWebApiTest
     {
         private Microsoft.AspNetCore.TestHost.TestServer IdentityShell { get; }
+
         private Microsoft.AspNetCore.TestHost.TestServer ExampleWebApi { get; }
 
         public ExampleWebApiTest()

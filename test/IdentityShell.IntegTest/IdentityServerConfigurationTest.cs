@@ -16,14 +16,10 @@ namespace IdentityShell.IntegTest
     {
         public IdentityServerConfigurationTest()
         {
-            //File.Copy(
-            //    @"D:\src\IdentityShell\src\IdentityShell\bin\Debug\net5.0\IdentityShell.deps.json",
-            //    @"D:\src\IdentityShell\test\IdentityShell.IntegTest\bin\Debug\net5.0\IdentityShell.deps.json", true);
-
-            this.IdentityShell = new TestServerHostFactory();
+            this.IdentityShell = new TestServerHostFactory().Server;
         }
 
-        public TestServerHostFactory IdentityShell { get; }
+        public Microsoft.AspNetCore.TestHost.TestServer IdentityShell { get; }
 
         [Fact]
         public async Task Configure_client_credentials_and_fetch_token()
