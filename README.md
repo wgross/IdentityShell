@@ -1,15 +1,33 @@
 # IdentityShell
 
-..hosts an IdentityServer4 and a PowerShell in the same console process to allow interactive modification of the identity servers config.
-The project is meant to be a playground for authentication/authorization configuration.
+is a experimentation/playground for OpenId authorization based on [IdentityServer4](https://github.com/IdentityServer/IdentityServer4). 
 
-On Startup a powershell console opens which has cmdlets configured to manipulate the configuration, operation and identity stores. The endpints opf the identitysrver are reachable at port 5000 by default. The cmdlets also allow to restart the hosted IdentityServer4 endpoints without quitting the process. The executable can be started with the parameter '/noconsole' to behave like a normal net core service.
+Technically it is a net5 console app hosting an IdentityServer4 and displaying a powershell console to the user. The powershell provides commandlets to manage the configuration and operational store of the Identity server and the user store which is based on [Microsofts AspNetCore Identity framework](https://github.com/dotnet/aspnetcore/tree/main/src/Identity).
 
-The configuration is made persistent using the Entity Framework based persistence for operation and configuration data provided for IdentityServer4 and Microsofts AspNetIdentity persistence using Sqlite.
+The stores use Sqlite as persistence.
+
+More informnation ono the  on the powershell commandlets provided can be found here : [src/IdentityShell.Cmdlets](https://github.com/wgross/IdentityShell/tree/main/src/IdentityShell.Cmdlets)
+
+Usage Examples can be found in [docs/example.md](https://github.com/wgross/IdentityShell/blob/main/docs/example.md).
+
+## Cloning the repository
+IdentityServer4 itself isn't reference as a nuget package but as a submodule. This makes it easy to debug the inner workings of it if authorizatin problems occur.
+```
+git clone https://github.com/wgross/IdentityShell.git --recurse-submodules
+```
 
 ## Building
+```
+cd .\IdentityShell
+dotnet build
+```
 
-Just clone the repository and 'dotnet build' the solution in the projects root should do the trick. 
+## Run the server
+```
+cd .\src\IdentityShell
+dotnet run
+```` 
+The server creates empty databases on start by default at the projects root.
 
 ## Usage examples
 [here](docs/example.md)
