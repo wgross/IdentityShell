@@ -28,6 +28,3 @@ cd .\src\IdentityShell
 dotnet run
 ```` 
 The server creates empty databases on start by default at the projects root.
-
-## Usage examples
-[here](docs/example.md)
