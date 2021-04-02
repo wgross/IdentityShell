@@ -1,11 +1,11 @@
-﻿using IdentityServer4.Models;
-using IdentityShell.Cmdlets.Configuration;
+﻿using Duende.IdentityServer.Models;
+using IdentityShell.Commands.Configuration;
 using System.Collections;
 using System.Linq;
 using System.Management.Automation;
 using Xunit;
 
-namespace IdentityShell.Cmdlets.Test.Configuration
+namespace IdentityShell.Commands.Test.Configuration
 {
     [Collection(nameof(IdentityCommandBase.GlobalServiceProvider))]
     public class IdentityApiScopeCommandTest : IdentityConfigurationCommandTestBase
@@ -14,7 +14,6 @@ namespace IdentityShell.Cmdlets.Test.Configuration
         public void IdentityShell_creates_ApiScope()
         {
             // ACT
-
             this.PowerShell
                 .AddCommandEx<SetIdentityApiScopeCommand>(cmd =>
                 {
@@ -32,60 +31,52 @@ namespace IdentityShell.Cmdlets.Test.Configuration
             var result = this.PowerShell.Invoke().Single();
 
             // ASSERT
-
-            AssertApiScope(result);
+            this.AssertApiScope(result);
         }
 
         [Fact]
         public void IdentityShell_reads_all_ApiScope()
         {
             // ARRANGE
-
             PSObject pso = this.ArrangeApiScope();
 
             // ACT
-
             this.PowerShell.AddCommandEx<GetIdentityApiScopeCommand>();
 
             var result = this.PowerShell.Invoke().Single();
 
-            AssertApiScope(result);
+            // ASSERT
+            this.AssertApiScope(result);
         }
 
         [Fact]
         public void IdentityShell_reads_ApiScope_by_name()
         {
             // ARRANGE
-
             PSObject pso = this.ArrangeApiScope();
 
             // ACT
-
             this.PowerShell.AddCommandEx<GetIdentityApiScopeCommand>(cmd => cmd.AddParameter(c => c.Name, "name"));
 
             var result = this.PowerShell.Invoke().Single();
 
             // ASSERT
-
-            AssertApiScope(result);
+            this.AssertApiScope(result);
         }
 
         [Fact]
         public void IdentityShell_modifies_pipes_ApiScope()
         {
             // ARRANGE
-
             PSObject pso = this.ArrangeApiScope();
 
             // ACT
-
             var result = this.PowerShell
                 .AddCommandEx<SetIdentityApiScopeCommand>(cmd => cmd.AddParameter(c => c.Description, "description-changed"))
                 .Invoke(Array(pso))
                 .Single();
 
             // ASSERT
-
             Assert.False(this.PowerShell.HadErrors);
             Assert.Equal("description-changed", result.As<ApiScope>().Description);
         }
@@ -94,17 +85,14 @@ namespace IdentityShell.Cmdlets.Test.Configuration
         public void IdentityShell_deletes_ApiScope()
         {
             // ARRANGE
-
             PSObject pso = this.ArrangeApiScope();
 
             // ACT
-
             this.PowerShell.AddCommandEx<RemoveIdentityApiScopeCommand>();
 
             var result = this.PowerShell.Invoke(Array(pso)).ToArray();
 
             // ASSERT
-
             Assert.False(this.PowerShell.HadErrors);
             Assert.Empty(result);
 

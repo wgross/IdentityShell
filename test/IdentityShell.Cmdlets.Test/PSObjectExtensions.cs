@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 using System.Management.Automation;
 using System.Reflection;
 
-namespace IdentityShell.Cmdlets.Test
+namespace IdentityShell.Commands.Test
 {
     public static class PSObjectExtensions
     {
@@ -102,11 +102,6 @@ namespace IdentityShell.Cmdlets.Test
             }
 
             #endregion Extract parameter name
-        }
-
-        public static PowerShellCallBuilder<T> AddCommand<T>(this PowerShell ps) where T : PSCmdlet
-        {
-            return NewCommandBuilder<T>(ps);
         }
 
         public static PowerShell AddCommandEx<T>(this PowerShell powerShell, Action<PowerShellCallBuilder<T>> cmdBuilder = null) where T : PSCmdlet

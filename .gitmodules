@@ -1,3 +1,12 @@
 [submodule "submodules/IdentityServer4"]
 	path = submodules/IdentityServer4
 	url = https://github.com/IdentityServer/IdentityServer4.git
+[submodule "submodules/-f"]
+	path = submodules/-f
+	url = https://github.com/DuendeSoftware/IdentityServer.git
+[submodule "submodules/IdentityServer"]
+	path = submodules/IdentityServer
+	url = https://github.com/DuendeSoftware/IdentityServer.git
+[submodule "submodules/Samples"]
+	path = submodules/Samples
+	url = https://github.com/DuendeSoftware/Samples.git

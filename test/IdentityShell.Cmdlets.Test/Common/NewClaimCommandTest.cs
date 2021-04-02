@@ -1,14 +1,12 @@
 ﻿using IdentityModel;
-using IdentityShell.Cmdlets;
-using IdentityShell.Cmdlets.Common;
-using IdentityShell.Cmdlets.Configuration;
+using IdentityShell.Commands.Common;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Security.Claims;
 using Xunit;
 
-namespace IdentityShell.Cmdlets.Test
+namespace IdentityShell.Commands.Test
 {
     public class NewClaimCommandTest
     {
@@ -24,20 +22,18 @@ namespace IdentityShell.Cmdlets.Test
         public void NewIdentityClaimCommand_creates_new_Claim()
         {
             // ACT
-
             this.PowerShell
-                .AddCommand<NewClaimCommand>()
-                    .AddParameter(c => c.Type, "type")
-                    .AddParameter(c => c.Value, "value")
-                    .AddParameter(c => c.ValueType, "valueType")
-                    .End();
+                .AddCommandEx<NewClaimCommand>(cmd =>
+                {
+                    cmd.AddParameter(c => c.Type, "type");
+                    cmd.AddParameter(c => c.Value, "value");
+                    cmd.AddParameter(c => c.ValueType, "valueType");
+                });
 
             var result = this.PowerShell.Invoke().Single();
 
             // ASSERT
-
             Assert.IsType<Claim>(result.ImmediateBaseObject);
-
             Assert.Equal("type", result.Property<string>("Type"));
             Assert.Equal("value", result.Property<string>("Value"));
             Assert.Equal("valueType", result.Property<string>("ValueType"));
@@ -47,18 +43,17 @@ namespace IdentityShell.Cmdlets.Test
         public void NewIdentityClaimCommand_creates_new_Claim_from_symbolic_claim_name()
         {
             // ACT
-
             this.PowerShell
-                .AddCommand<NewClaimCommand>()
-                    .AddParameter(c => c.Type, nameof(JwtClaimTypes.Name))
-                    .AddParameter(c => c.Value, "value")
-                    .AddParameter(c => c.ValueType, nameof(ClaimValueTypes.String))
-                    .End();
+                .AddCommandEx<NewClaimCommand>(cmd =>
+                {
+                    cmd.AddParameter(c => c.Type, nameof(JwtClaimTypes.Name));
+                    cmd.AddParameter(c => c.Value, "value");
+                    cmd.AddParameter(c => c.ValueType, nameof(ClaimValueTypes.String));
+                });
 
             var result = this.PowerShell.Invoke().Single();
 
             // ASSERT
-
             Assert.IsType<Claim>(result.ImmediateBaseObject);
             Assert.Equal(JwtClaimTypes.Name, result.Property<string>("Type"));
             Assert.Equal("value", result.Property<string>("Value"));

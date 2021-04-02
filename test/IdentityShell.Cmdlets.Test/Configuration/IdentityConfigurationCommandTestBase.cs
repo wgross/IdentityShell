@@ -1,7 +1,6 @@
-﻿using IdentityServer4.EntityFramework.DbContexts;
-using IdentityServer4.Models;
-using IdentityShell.Cmdlets.Configuration;
-using IdentityShell.Hosting;
+﻿using Duende.IdentityServer.Models;
+using IdentityShell.Commands.Configuration;
+using IdentityShell.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections;
@@ -9,38 +8,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
-using System.Reflection;
 using Xunit;
 
-namespace IdentityShell.Cmdlets.Test
+namespace IdentityShell.Commands.Test
 {
     public abstract class IdentityConfigurationCommandTestBase : IDisposable
     {
-        private readonly ServiceProvider serviceProvider;
-        private InMemoryDbContextOptionsBuilder inMemorySqliteDb;
-
         public IdentityConfigurationCommandTestBase()
         {
-            this.inMemorySqliteDb = new InMemoryDbContextOptionsBuilder(nameof(ConfigurationDbContext));
+            IdentityCommandBase.GlobalServiceProvider = new ServiceCollection()
+                .AddSingleton<IdentityServerInMemoryConfig>()
+                .AddScoped<IApiScopeRepository, ApiScopeRepository>()
+                .AddScoped<IApiResourceRepository, ApiResourceRepository>()
+                .AddScoped<IClientRepository, ClientRepository>()
+                .AddScoped<IIdentityResourceRepository, IdentityResourceRepository>()
+                .AddScoped<ITestUserRepository, TestUserRepository>()
+                .BuildServiceProvider();
 
-            var serviceCollection = new ServiceCollection();
-
-            serviceCollection
-                .AddIdentityServer()
-                .AddConfigurationStore(options =>
-                {
-                    options.ConfigureDbContext = opts => this.inMemorySqliteDb.CreateOptions(opts,
-                        sqliteOpts => sqliteOpts.MigrationsAssembly(typeof(Startup).GetTypeInfo().Assembly.GetName().Name));
-                });
-
-            this.serviceProvider = serviceCollection.BuildServiceProvider();
-
-            using var serviceScope = serviceProvider.GetService<IServiceScopeFactory>().CreateScope();
-            using var context = serviceScope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
-
-            context.Database.EnsureCreated();
-
-            IdentityCommandBase.GlobalServiceProvider = this.serviceProvider;
             this.PowerShell = PowerShell.Create(InitialSessionState.CreateDefault().AddIdentityConfigurationCommands());
         }
 
@@ -48,9 +32,6 @@ namespace IdentityShell.Cmdlets.Test
         {
             this.PowerShell?.Dispose();
             this.PowerShell = null;
-
-            this.inMemorySqliteDb?.Dispose();
-            this.inMemorySqliteDb = null;
         }
 
         public PowerShell PowerShell { get; private set; }

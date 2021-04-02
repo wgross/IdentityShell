@@ -2,55 +2,31 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <LanguageVersion>Latest</LanguageVersion>
-    <OutputType>Exe</OutputType>
-    <PreserveCompilationContext>true</PreserveCompilationContext>
+    <RuntimeIdentifiers>win-x64;linux-x64;linux-arm</RuntimeIdentifiers>
+    <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
+    <PublishSingleFile>false</PublishSingleFile>
+    <SelfContained>false</SelfContained>
+    <PublishTrimmed>true</PublishTrimmed>
+    <IsPackable>true</IsPackable>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>identity-shell</ToolCommandName>
+    <PackageOutputPath>./nupkg</PackageOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
-    <!--
-    Reference the propject from the local submodule to enable debugging of the open-id protocol implementation
-    -->
-    <ProjectReference Include="..\..\submodules\IdentityServer4\src\IdentityServer4\src\IdentityServer4.csproj" />
-    <!--
-    alternatively reference the current release as  a NuGet.
-    <PackageReference Include="IdentityServer4" Version="4.1.1" />
-    -->
-    <PackageReference Include="IdentityServer4.AspNetIdentity" Version="4.1.1" />
-    <PackageReference Include="IdentityServer4.EntityFramework" Version="4.1.1" />
+    <EmbeddedResource Include="wwwroot\**\*" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="3.1.6">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.6">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="3.1.6" />
+    <!--<PackageReference Include="Duende.IdentityServer" Version="5.1.0" />-->
+    <ProjectReference Include="..\..\submodules\IdentityServer\src\IdentityServer\Duende.IdentityServer.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="3.1.13" />
+    <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="5.0.4" />
+    <PackageReference Include="Serilog.AspNetCore" Version="4.0.0" />
     <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.1.0" />
-    <PackageReference Include="Serilog.AspNetCore" Version="3.4.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <DotNetCliToolReference Include="Microsoft.EntityFrameworkCore.Tools.DotNet" Version="2.0.3" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="..\..\.editorconfig" Link=".editorconfig" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\IdentityShell.AspNetIdentityStore\IdentityShell.AspNetIdentityStore.csproj" />
-    <ProjectReference Include="..\IdentityShell.Cmdlets\IdentityShell.Cmdlets.csproj" />
-    <ProjectReference Include="..\IdentityShell.IdentityStore\IdentityShell.IdentityStore.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="scripts\Test-ClientAuthentication.ps1">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <PackageReference Include="System.Management.Automation" Version="7.1.0" />
   </ItemGroup>
 </Project>

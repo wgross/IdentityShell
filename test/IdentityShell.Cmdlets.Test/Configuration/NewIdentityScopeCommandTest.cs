@@ -1,15 +1,14 @@
-﻿using IdentityServer4.Models;
-using IdentityShell.Cmdlets;
-using IdentityShell.Cmdlets.Configuration;
-using System.Collections;
+﻿using Duende.IdentityServer.Models;
+using IdentityShell.Commands.Configuration;
 using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using Xunit;
 
-namespace IdentityShell.Cmdlets.Test
+namespace IdentityShell.Commands.Test
 {
+    [Collection(nameof(IdentityCommandBase.GlobalServiceProvider))]
     public class NewIdentityScopeCommandTest
     {
         public PowerShell PowerShell { get; }
@@ -24,24 +23,23 @@ namespace IdentityShell.Cmdlets.Test
         public void NewIdentityClaimCommand_creates_new_Claim()
         {
             // ACT
-
             this.PowerShell
-                .AddCommand<NewIdentityScopeCommand>()
+                .AddCommandEx<NewIdentityScopeCommand>(cmd =>
+                {
+                    cmd
                     .AddParameter(c => c.Name, "name")
                     .AddParameter(c => c.DisplayName, "displayName")
                     .AddParameter(c => c.Description, "description")
                     .AddParameter(c => c.Emphasize, true)
                     .AddParameter(c => c.Required, true)
                     .AddParameter(c => c.ShowInDiscoveryDocument, true)
-                    .AddParameter(c => c.UserClaims, new object[] { "a", "b" })
-                    .End();
+                    .AddParameter(c => c.UserClaims, new object[] { "a", "b" });
+                });
 
             var result = this.PowerShell.Invoke().Single();
 
             // ASSERT
-
             Assert.IsType<ApiScope>(result.ImmediateBaseObject);
-
             Assert.Equal("name", result.Property<string>("Name"));
             Assert.Equal("displayName", result.Property<string>("displayName"));
             Assert.Equal("description", result.Property<string>("Description"));

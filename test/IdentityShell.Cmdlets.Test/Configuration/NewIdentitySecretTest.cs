@@ -1,14 +1,14 @@
-﻿using IdentityServer4.Models;
-using IdentityShell.Cmdlets;
-using IdentityShell.Cmdlets.Configuration;
+﻿using Duende.IdentityServer.Models;
+using IdentityShell.Commands.Configuration;
 using System;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using Xunit;
 
-namespace IdentityShell.Cmdlets.Test
+namespace IdentityShell.Commands.Test
 {
+    [Collection(nameof(IdentityCommandBase.GlobalServiceProvider))]
     public class NewIdentitySecretTest
     {
         public PowerShell PowerShell { get; }
@@ -22,21 +22,21 @@ namespace IdentityShell.Cmdlets.Test
         public void NewIdentitySecret_create_Secret_instance()
         {
             // ACT
-
             var expiration = DateTime.Now;
             this.PowerShell
-                .AddCommand<NewIdentitySecretCommand>()
+
+                .AddCommandEx<NewIdentitySecretCommand>(cmd =>
+                {
+                    cmd
                     .AddParameter(c => c.Value, "value")
                     .AddParameter(c => c.Description, "description")
-                    .AddParameter(c => c.Expiration, expiration)
-                    .End();
+                    .AddParameter(c => c.Expiration, expiration);
+                });
 
             var result = this.PowerShell.Invoke().Single();
 
             // ASSERT
-
             Assert.IsType<Secret>(result.ImmediateBaseObject);
-
             Assert.Equal("value", result.Property<string>("Value"));
             Assert.Equal("description", result.Property<string>("Description"));
             Assert.Equal(expiration, result.Property<DateTime>("Expiration"));

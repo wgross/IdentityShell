@@ -1,14 +1,13 @@
-using IdentityServer4.Models;
-using IdentityShell.Cmdlets.Configuration;
+using Duende.IdentityServer.Models;
+using IdentityShell.Commands.Configuration;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation;
-using System.Security.Claims;
 using Xunit;
 
-namespace IdentityShell.Cmdlets.Test.Configuration
+namespace IdentityShell.Commands.Test.Configuration
 {
     [Collection(nameof(IdentityCommandBase.GlobalServiceProvider))]
     public class IdentityClientCommandTest : IdentityConfigurationCommandTestBase
@@ -17,14 +16,12 @@ namespace IdentityShell.Cmdlets.Test.Configuration
         public void IdentityShell_read_empty_client_table()
         {
             // ACT
-
             this.PowerShell
                 .AddCommand("Get-IdentityClient");
 
             var result = this.PowerShell.Invoke().ToArray();
 
             // ASSERT
-
             Assert.False(this.PowerShell.HadErrors);
             Assert.Empty(result);
         }
@@ -89,14 +86,13 @@ namespace IdentityShell.Cmdlets.Test.Configuration
 
             Assert.Equal("type", client.Claims.Single().Type);
             Assert.Equal("value", client.Claims.Single().Value);
-            Assert.Equal(ClaimValueTypes.String, client.Claims.Single().ValueType);
+            Assert.Equal("valueType", client.Claims.Single().ValueType);
         }
 
         [Fact]
         public void IdentityShell_creates_Client()
         {
             // ACT
-
             this.PowerShell
                 .AddCommandEx<SetIdentityClientCommand>(cmd =>
                 {
@@ -116,7 +112,7 @@ namespace IdentityShell.Cmdlets.Test.Configuration
                         .AddParameter(c => c.EnableLocalLogin, true)
                         .AddParameter(c => c.IdentityProviderRestrictions, Array("ipr-1", "ipr-2"))
                         .AddParameter(c => c.IncludeJwtId, true)
-                        .AddParameter(c => c.Claims, Array(new ClientClaim("type", "value", ClaimValueTypes.String)))
+                        .AddParameter(c => c.Claims, Array(new ClientClaim("type", "value", "valueType")))
                         .AddParameter(c => c.AlwaysSendClientClaims, true)
                         .AddParameter(c => c.ClientClaimsPrefix, "prefix")
                         .AddParameter(c => c.PairWiseSubjectSalt, "subjectsalt")
@@ -156,10 +152,9 @@ namespace IdentityShell.Cmdlets.Test.Configuration
             var result = this.PowerShell.Invoke().Single();
 
             // ASSERT
-
             Assert.False(this.PowerShell.HadErrors);
 
-            AssertClient(result.As<Client>());
+            this.AssertClient(result.As<Client>());
         }
 
         private PSObject ArrangeClient(DateTime clientSecretExpiration)
@@ -229,41 +224,35 @@ namespace IdentityShell.Cmdlets.Test.Configuration
         public void IdentityShell_reads_Clients()
         {
             // ARRANGE
-
             var clientSecretExpiration = DateTime.Now;
 
-            ArrangeClient(clientSecretExpiration);
+            this.ArrangeClient(clientSecretExpiration);
 
             // ACT
-
             this.PowerShell.AddCommandEx<GetIdentityClientCommand>();
 
             var result = this.PowerShell.Invoke().Single();
 
             // ASSERT
-
             Assert.False(this.PowerShell.HadErrors);
 
-            AssertClient(result.As<Client>());
+            this.AssertClient(result.As<Client>());
         }
 
         [Fact]
         public void IdentityShell_reads_Clients_by_clientid()
         {
             // ARRANGE
-
             var clientSecretExpiration = DateTime.Now;
 
             PSObject pso = ArrangeClient(clientSecretExpiration);
 
             // ACT
-
             this.PowerShell.AddCommandEx<GetIdentityClientCommand>(cmdlet => cmdlet.AddParameter(c => c.ClientId, pso.As<Client>().ClientId));
 
             var result = this.PowerShell.Invoke().Single();
 
             // ASSERT
-
             Assert.False(this.PowerShell.HadErrors);
 
             AssertClient(result.As<Client>());
@@ -272,20 +261,18 @@ namespace IdentityShell.Cmdlets.Test.Configuration
         [Fact]
         public void IdentityShell_modifies_piped_Client()
         {
+            // ARRANGE
             var clientSecretExpiration = DateTime.Now;
             PSObject pso = ArrangeClient(clientSecretExpiration);
 
             // ACT
-
             var result = this.PowerShell
                 .AddCommandEx<SetIdentityClientCommand>(cmdlet => cmdlet.AddParameter(c => c.RequireConsent, false))
                 .Invoke(Array(pso))
                 .Single();
 
             // ASSERT
-
             Assert.False(this.PowerShell.HadErrors);
-
             Assert.False(result.As<Client>().RequireConsent);
         }
 
@@ -293,12 +280,10 @@ namespace IdentityShell.Cmdlets.Test.Configuration
         public void IdentityShell_removes_client()
         {
             // ARRANGE
-
             var clientSecretExpiration = DateTime.Now;
             PSObject pso = ArrangeClient(clientSecretExpiration);
 
             // ACT
-
             this.PowerShell
                 .AddCommand("Remove-IdentityClient")
                     .AddParameter("ClientId", "client-id");
@@ -306,7 +291,6 @@ namespace IdentityShell.Cmdlets.Test.Configuration
             this.PowerShell.Invoke();
 
             // ASSERT
-
             Assert.False(this.PowerShell.HadErrors);
 
             this.PowerShell.Commands.Clear();
@@ -318,19 +302,16 @@ namespace IdentityShell.Cmdlets.Test.Configuration
         public void IdentityShell_removes_client_from_pipe()
         {
             // ARRANGE
-
             var clientSecretExpiration = DateTime.Now;
             ArrangeClient(clientSecretExpiration);
 
             // ACT
-
             this.PowerShell
                 .AddCommand("Get-IdentityClient")
                 .AddCommand("Remove-IdentityClient");
             this.PowerShell.Invoke();
 
             // ASSERT
-
             Assert.False(this.PowerShell.HadErrors);
 
             this.PowerShell.Commands.Clear();

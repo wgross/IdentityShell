@@ -1,12 +1,11 @@
-﻿using IdentityServer4.Models;
-using IdentityShell.Cmdlets;
-using IdentityShell.Cmdlets.Common;
+﻿using Duende.IdentityServer.Models;
+using IdentityShell.Commands.Common;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using Xunit;
 
-namespace IdentityShell.Cmdlets.Test
+namespace IdentityShell.Commands.Test
 {
     public class NewIdentityClientClaimCommandTest
     {

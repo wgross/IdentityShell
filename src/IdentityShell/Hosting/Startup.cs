@@ -1,90 +1,81 @@
-﻿// Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
+﻿// Copyright (c) Duende Software. All rights reserved.
+// See LICENSE in the project root for license information.
 
-using IdentityServer4.EntityFramework.DbContexts;
-using IdentityServer4.EntityFramework.Options;
-using IdentityServerAspNetIdentity.Data;
-using IdentityServerAspNetIdentity.Models;
-using IdentityShell.Cmdlets.Configuration;
-using IdentityShell.IdentityStore;
+using Duende.IdentityServer;
+using IdentityServerHost.Quickstart.UI;
+using IdentityShell.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Reflection;
 
-namespace IdentityShell.Hosting
+namespace IdentityShell
 {
     public class Startup
     {
         public IWebHostEnvironment Environment { get; }
-
         public IConfiguration Configuration { get; }
-
-        public static IServiceProvider AppServices { get; private set; }
 
         public Startup(IWebHostEnvironment environment, IConfiguration configuration)
         {
-            this.Environment = environment;
-            this.Configuration = configuration;
+            Environment = environment;
+            Configuration = configuration;
         }
 
         public void ConfigureServices(IServiceCollection services)
         {
-            // uncomment, if you want to add an MVC-based UI
-            services.AddControllersWithViews().AddApplicationPart(typeof(Startup).Assembly);
+            services.AddControllersWithViews();
+
+            // read UI from embedded resources
+            var embeddedResources = new ManifestEmbeddedFileProvider(typeof(Program).Assembly, "wwwroot");
+            this.Environment.WebRootFileProvider = embeddedResources;
+            services.AddSingleton<IFileProvider>(embeddedResources);
+
+            // Add repos for inmemory config access
+            IdentityServerInMemoryConfig inMemoryConfig = new();
+            services.AddSingleton(inMemoryConfig);
+            services.AddScoped<IIdentityResourceRepository, IdentityResourceRepository>();
+            services.AddScoped<IApiResourceRepository, ApiResourceRepository>();
+            services.AddScoped<IApiScopeRepository, ApiScopeRepository>();
+            services.AddScoped<IClientRepository, ClientRepository>();
+            services.AddScoped<ITestUserRepository, TestUserRepository>();
+
+            var builder = services.AddIdentityServer(options =>
+            {
+                options.Events.RaiseErrorEvents = true;
+                options.Events.RaiseInformationEvents = true;
+                options.Events.RaiseFailureEvents = true;
+                options.Events.RaiseSuccessEvents = true;
+
+                // see https://docs.duendesoftware.com/identityserver/v5/fundamentals/resources/
+                options.EmitStaticAudienceClaim = true;
+            }).AddTestUsers(TestUsers.Users);
+
+            // in-memory, code config
+
+            builder.AddInMemoryIdentityResources(inMemoryConfig.IdentityResources);
+            builder.AddInMemoryApiScopes(inMemoryConfig.ApiScopes);
+            builder.AddInMemoryClients(inMemoryConfig.Clients);
+            builder.AddInMemoryApiResources(inMemoryConfig.ApiResources);
+            builder.AddTestUsers(inMemoryConfig.TestUsers);
 
             services
-                .AddDbContext<ApplicationDbContext>(ConfigureAspNetIdentityDbContext)
-                .AddIdentity<ApplicationUser, IdentityRole>()
-                .AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddDefaultTokenProviders();
+                .AddAuthentication()
+                .AddGoogle(options =>
+                {
+                    options.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
 
-            var builder = services
-                .AddIdentityServer()
-                .AddConfigurationStore(this.ConfigureIdentityServerConfigurationStore)
-                .AddOperationalStore(ConfigureIdentityServerOperationalStore)
-                .AddAspNetIdentity<ApplicationUser>();
-
-            // not recommended for production - you need to store your key material somewhere secure
-            builder.AddDeveloperSigningCredential();
-
-            // the background service migrates the databases after startup
-            // a request might come in faster in theory...?
-            // services.AddHostedService<MigrateDatabaseService>();
+                    // register your IdentityServer with Google at https://console.developers.google.com
+                    // enable the Google+ API
+                    // set the redirect URI to https://localhost:5001/signin-google
+                    options.ClientId = "copy client ID from Google here";
+                    options.ClientSecret = "copy client secret from Google here";
+                });
         }
 
-        #region Overridable parts of the configuration
-
-        virtual protected void ConfigureIdentityServerOperationalStore(OperationalStoreOptions options)
-        {
-            // dotnet ef migrations add InitialIdentityServerPersistedGrantDbMigration -c PersistedGrantDbContext -o Data/Migrations/IdentityServer/PersistedGrantDb -s ..\IdentityShell\IdentityShell.csproj
-            string migrationsAssembly = typeof(ApiResourceUpdateMappers).GetTypeInfo().Assembly.GetName().Name;
-
-            options.ConfigureDbContext = b => b.UseSqlite(this.Configuration.GetConnectionString("OperationalStore"), sql => sql.MigrationsAssembly(migrationsAssembly));
-        }
-
-        virtual protected void ConfigureIdentityServerConfigurationStore(ConfigurationStoreOptions options)
-        {
-            // dotnet ef migrations add InitialIdentityServerConfigurationDbMigration -c ConfigurationDbContext -o Data/Migrations/IdentityServer/ConfigurationDb -s ..\IdentityShell\IdentityShell.csproj
-            string migrationsAssembly = typeof(ApiResourceUpdateMappers).GetTypeInfo().Assembly.GetName().Name;
-
-            options.ConfigureDbContext = builder => builder.UseSqlite(this.Configuration.GetConnectionString("ConfigurationStore"), sql => sql.MigrationsAssembly(migrationsAssembly));
-        }
-
-        virtual protected void ConfigureAspNetIdentityDbContext(DbContextOptionsBuilder options)
-        {
-            // dotnet ef migrations add CreateIdentitySchema -c ApplicationDbContext -o Data/Migrations -s ..\IdentityShell\IdentityShell.csproj
-            options.UseSqlite(Configuration.GetConnectionString("UserStore"));
-        }
-
-        #endregion Overridable parts of the configuration
-
-        public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifeTime)
+        public void Configure(IApplicationBuilder app)
         {
             if (Environment.IsDevelopment())
             {
@@ -92,6 +83,7 @@ namespace IdentityShell.Hosting
             }
 
             app.UseStaticFiles();
+
             app.UseRouting();
             app.UseIdentityServer();
             app.UseAuthorization();
@@ -99,32 +91,6 @@ namespace IdentityShell.Hosting
             {
                 endpoints.MapDefaultControllerRoute();
             });
-
-            AppServices = app.ApplicationServices;
-
-            this.InitializeDatabase(app);
-
-            // inject the scope factory in the cmdlet base class
-            IdentityConfigurationCommandBase.GlobalServiceProvider = app.ApplicationServices;
-
-            // Register a delegate for graceful shutdown
-            appLifeTime.ApplicationStopping.Register(this.OnShuttingDown);
-        }
-
-        private void InitializeDatabase(IApplicationBuilder app)
-        {
-            using var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope();
-            using var configurationContext = serviceScope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
-            using var operationalContext = serviceScope.ServiceProvider.GetRequiredService<PersistedGrantDbContext>();
-            using var userContext = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-            configurationContext.Database.Migrate();
-            operationalContext.Database.Migrate();
-            userContext.Database.Migrate();
-        }
-
-        protected virtual void OnShuttingDown()
-        {
         }
     }
 }

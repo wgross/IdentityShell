@@ -1,0 +1,14 @@
+<Project>
+ <PropertyGroup Label="FineCodeCoverage">
+    <Enabled>True</Enabled>
+    <Exclude>
+      [Microsoft.*]*
+      [System.*]*
+	  [Duende.IdentityServer.*]*
+    </Exclude>
+    <Include>[*]*</Include>
+    <ExcludeByFile></ExcludeByFile>
+    <ExcludeByAttribute></ExcludeByAttribute>
+    <IncludeTestAssembly>True</IncludeTestAssembly>
+  </PropertyGroup>
+</Project>
