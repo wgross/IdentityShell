@@ -4,6 +4,7 @@
 using Duende.IdentityServer;
 using IdentityServerHost.Quickstart.UI;
 using IdentityShell.Configuration;
+using IdentityShell.Hosting;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -27,6 +28,9 @@ namespace IdentityShell
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
+
+            // configure options for Commandline parameters
+            services.Configure<CommandLineOptions>(this.Configuration);
 
             // read UI from embedded resources
             var embeddedResources = new ManifestEmbeddedFileProvider(typeof(Program).Assembly, "wwwroot");

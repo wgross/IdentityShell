@@ -1,5 +1,4 @@
 ﻿using IdentityModel.Client;
-using IdentityShell.Commands;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,7 +27,7 @@ namespace IdentityShell.Commands.Endpoints
             var firstAddress = serverAddressFeature.Addresses.FirstOrDefault();
             if (firstAddress is null)
             {
-                throw new PSInvalidOperationException("Discovery endpoint couldn't determined");
+                throw new PSInvalidOperationException("Discovery endpoint couldn't be determined");
             }
             else
             {
@@ -40,7 +39,5 @@ namespace IdentityShell.Commands.Endpoints
         {
             get => this.discoveryDocument ??= Await(new HttpClient().GetDiscoveryDocumentAsync(address: this.EndpointUrl ?? this.DiscoveryEndpoint));
         }
-
-        
     }
 }

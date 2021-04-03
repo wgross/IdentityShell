@@ -6,8 +6,6 @@
 #
 name: identityshell
 services:
-- name: identity
-  project: src/IdentityShell/IdentityShell.csproj
 - name: mvcclient
   project: submodules/Samples/IdentityServer/v5/Quickstarts/2_InteractiveAspNetCore/src/MvcClient/MvcClient.csproj
 - name: api
