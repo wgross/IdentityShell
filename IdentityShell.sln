@@ -26,6 +26,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IdentityShell", "src\Identi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IdentityShell.Cmdlets.Test", "test\IdentityShell.Cmdlets.Test\IdentityShell.Cmdlets.Test.csproj", "{B04EB0D6-8DD6-449E-A39F-F339467722A2}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MvcClient", "submodules\Samples\IdentityServer\v5\Quickstarts\2_InteractiveAspNetCore\src\MvcClient\MvcClient.csproj", "{F4BACEB8-636C-4E16-8EC2-EC49F16BC513}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{38B787E2-FC03-41BA-98D4-A987A4CC9F78}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -84,6 +88,18 @@ Global
 		{B04EB0D6-8DD6-449E-A39F-F339467722A2}.Release|x64.Build.0 = Release|Any CPU
 		{B04EB0D6-8DD6-449E-A39F-F339467722A2}.Release|x86.ActiveCfg = Release|Any CPU
 		{B04EB0D6-8DD6-449E-A39F-F339467722A2}.Release|x86.Build.0 = Release|Any CPU
+		{F4BACEB8-636C-4E16-8EC2-EC49F16BC513}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F4BACEB8-636C-4E16-8EC2-EC49F16BC513}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F4BACEB8-636C-4E16-8EC2-EC49F16BC513}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F4BACEB8-636C-4E16-8EC2-EC49F16BC513}.Debug|x64.Build.0 = Debug|Any CPU
+		{F4BACEB8-636C-4E16-8EC2-EC49F16BC513}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F4BACEB8-636C-4E16-8EC2-EC49F16BC513}.Debug|x86.Build.0 = Debug|Any CPU
+		{F4BACEB8-636C-4E16-8EC2-EC49F16BC513}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F4BACEB8-636C-4E16-8EC2-EC49F16BC513}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F4BACEB8-636C-4E16-8EC2-EC49F16BC513}.Release|x64.ActiveCfg = Release|Any CPU
+		{F4BACEB8-636C-4E16-8EC2-EC49F16BC513}.Release|x64.Build.0 = Release|Any CPU
+		{F4BACEB8-636C-4E16-8EC2-EC49F16BC513}.Release|x86.ActiveCfg = Release|Any CPU
+		{F4BACEB8-636C-4E16-8EC2-EC49F16BC513}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -96,6 +112,8 @@ Global
 		{5825211E-A0F5-4393-A8E3-A13561C59270} = {0C1A230A-72FD-475B-99B0-920FABEAFD74}
 		{EA64B7E1-1E1E-4584-B6EE-9F0FB2ADD6D3} = {BA11CD37-A7A0-4F90-B2CB-E740B20DFD35}
 		{B04EB0D6-8DD6-449E-A39F-F339467722A2} = {537F6764-9FAE-45AF-8775-E47E15F84F64}
+		{F4BACEB8-636C-4E16-8EC2-EC49F16BC513} = {38B787E2-FC03-41BA-98D4-A987A4CC9F78}
+		{38B787E2-FC03-41BA-98D4-A987A4CC9F78} = {6E11005C-914F-4FE8-BB6C-F41D8BF2021F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E8FFABDC-08A3-43C0-AA88-9222DAC74A14}

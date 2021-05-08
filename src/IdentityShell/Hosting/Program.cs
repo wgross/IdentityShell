@@ -55,7 +55,7 @@ namespace IdentityShell
                 else
                 {
                     StartNonInteractiveShell(commandlineConfig.Value.StartupConfiguration);
-                    
+
                     host.WaitForShutdown();
                 }
                 return 0;
@@ -75,7 +75,10 @@ namespace IdentityShell
         {
             Log.Information($"Running script '{startupScript}'...");
             var sessionState = CreateInitialSessionState();
-            sessionState.ExecutionPolicy = ExecutionPolicy.Unrestricted;
+            if (System.Environment.OSVersion.Platform == PlatformID.Win32NT)
+            {
+                sessionState.ExecutionPolicy = ExecutionPolicy.Unrestricted;
+            }
 
             PowerShell
                 .Create(sessionState)
