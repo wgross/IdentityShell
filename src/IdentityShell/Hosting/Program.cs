@@ -1,22 +1,20 @@
-﻿// Copyright (c) Duende Software. All rights reserved.
-// See LICENSE in the project root for license information.
-
-using IdentityShell.Commands;
+﻿using IdentityShell.Commands;
 using IdentityShell.Commands.Common;
 using IdentityShell.Commands.Configuration;
 using IdentityShell.Commands.Endpoints;
-using IdentityShell.Hosting;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using Microsoft.PowerShell;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
 using System;
+using System.CommandLine;
+using System.CommandLine.Invocation;
+using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
+using System.Threading.Tasks;
 
 namespace IdentityShell
 {
@@ -34,31 +32,16 @@ namespace IdentityShell
                 .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}", theme: AnsiConsoleTheme.Code)
                 .CreateLogger();
 
+            RootCommand rootCommand = new();
+            rootCommand.Add(new Option<bool>(new[] { "--non-interactive", "-ni" }, "Start without an interactive shell "));
+            rootCommand.Add(new Option<string[]>(new[] { "--run-script", "-s" }, "Startup script(s)"));
+            rootCommand.Description = "Run openid connect server";
+            rootCommand.Handler = CommandHandler.Create<bool, string[]>(async (nonInteractive, runScript)
+                => await StartIdentityShell(nonInteractive, runScript, args));
+
             try
             {
-                Log.Information("Starting host...");
-                using var host = CreateHostBuilder(args).Build();
-                host.Start();
-
-                var commandlineConfig = host.Services.GetRequiredService<IOptions<CommandLineOptions>>();
-
-                IdentityCommandBase.GlobalServiceProvider = host.Services;
-
-                if (string.IsNullOrEmpty(commandlineConfig.Value.StartupConfiguration))
-                {
-                    StartInteractiveShell(Array.Empty<string>());
-                }
-                else if (commandlineConfig.Value.HideShell == false)
-                {
-                    StartInteractiveShell(new[] { "-NoExit", "-c", commandlineConfig.Value.StartupConfiguration });
-                }
-                else
-                {
-                    StartNonInteractiveShell(commandlineConfig.Value.StartupConfiguration);
-
-                    host.WaitForShutdown();
-                }
-                return 0;
+                return rootCommand.Invoke(args);
             }
             catch (Exception ex)
             {
@@ -71,43 +54,98 @@ namespace IdentityShell
             }
         }
 
-        private static void StartNonInteractiveShell(string startupScript)
+        private static async Task StartIdentityShell(bool nonInteractive, string[] runScript, string[] args)
         {
-            Log.Information($"Running script '{startupScript}'...");
-            var sessionState = CreateInitialSessionState();
-            if (System.Environment.OSVersion.Platform == PlatformID.Win32NT)
+            using var webHost = await StartWebHost(args);
+
+            // share service provider with identity commands
+            IdentityCommandBase.GlobalServiceProvider = webHost.Services;
+
+            if (nonInteractive)
+            {
+                StartNonInteractiveShell(runScript.ToArray());
+            }
+            else
+            {
+                StartInteractiveShell(runScript.ToArray());
+
+                await webHost.StopAsync();
+            }
+
+            await webHost.WaitForShutdownAsync();
+        }
+
+        private async static Task<IHost> StartWebHost(string[] args)
+        {
+            Log.Information("Starting identity server...");
+
+            var host = CreateHostBuilder(args).Build();
+
+            await host.StartAsync();
+
+            return host;
+        }
+
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+        Host.CreateDefaultBuilder(args)
+            .UseSerilog()
+            .ConfigureWebHostDefaults(webBuilder =>
+            {
+                webBuilder.UseStartup<Startup>();
+            });
+
+        private static void StartNonInteractiveShell(string[] startupScripts)
+        {
+            Log.Information($"Running script '{string.Join(",", startupScripts)}'...");
+
+            RunStartupScripts(startupScripts, CreateInitialSessionState());
+        }
+
+        private static void StartInteractiveShell(string[] startupScripts)
+        {
+            InitialSessionState iss = CreateInitialSessionState();
+
+            RunStartupScripts(startupScripts, iss);
+
+            Log.Information("Starting identity server powershell...");
+
+            ConsoleShell.Start(iss, "IdentityShell", "", Array.Empty<string>());
+        }
+
+        private static void RunStartupScripts(string[] startupScripts, InitialSessionState iss)
+        {
+            if (startupScripts.Any())
+            {
+                Log.Information("Initializing identity server powershell...");
+
+                var powershell = PowerShell.Create(iss);
+
+                foreach (var s in startupScripts)
+                {
+                    Log.Information("Adding script {startupScript}", s);
+
+                    powershell.AddCommand(s);
+                }
+
+                Log.Information("Invoking scripts");
+                powershell.Invoke();
+            }
+        }
+
+        private static InitialSessionState CreateInitialSessionState()
+        {
+            var sessionState = InitialSessionState
+                .CreateDefault()
+                .AddIdentityConfigurationCommands()
+                .AddCommonCommands()
+                .AddEndpointCommands();
+
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
                 sessionState.ExecutionPolicy = ExecutionPolicy.Unrestricted;
             }
 
-            PowerShell
-                .Create(sessionState)
-                .AddCommand(startupScript)
-                .Invoke();
+            return sessionState;
         }
-
-        private static void StartInteractiveShell(string[] args)
-        {
-            Log.Information("Starting powershell...");
-            InitialSessionState iss = CreateInitialSessionState();
-
-            iss.ExecutionPolicy = ExecutionPolicy.Unrestricted;
-
-            ConsoleShell.Start(iss, "IdentityShell", "", args);
-        }
-
-        private static InitialSessionState CreateInitialSessionState() => InitialSessionState
-            .CreateDefault()
-            .AddIdentityConfigurationCommands()
-            .AddCommonCommands()
-            .AddEndpointCommands();
-
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .UseSerilog()
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>();
-                });
     }
 }

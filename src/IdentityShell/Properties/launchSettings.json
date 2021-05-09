@@ -2,6 +2,7 @@
   "profiles": {
     "SelfHost": {
       "commandName": "Project",
+      "commandLineArgs": "-s scripts/interactive_client.ps1",
       "launchBrowser": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"

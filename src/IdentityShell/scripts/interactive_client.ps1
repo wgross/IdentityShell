@@ -1,15 +1,4 @@
-function clean_configurationstore {
-    Get-IdentityApiScope|Remove-IdentityApiScope
-    Get-IdentityApiResource|Remove-IdentityApiResource
-    Get-IdentityResource|Remove-IdentityResource
-    Get-IdentityClient|Remove-IdentityClient
-    Get-TestUser|Remove-TestUser
-}
-filter sha256base64 {
-    $bytes = [System.Text.Encoding]::UTF8.getBytes($_)
-    $hash = [System.Security.Cryptography.HashAlgorithm]::Create("SHA256").ComputeHash($bytes)
-    [System.Convert]::ToBase64String($hash)
-}
+. $PSScriptRoot/utilities.ps1
 
 clean_configurationstore
 
@@ -19,7 +8,7 @@ $openid = Set-IdentityApiScope -Name "openid"
 $profile = Set-IdentityApiScope -Name "profile"
 
 # clients
-$secret = New-IdentitySecret -Value ("secret"|sha256base64)
+$secret = New-IdentitySecret -PlainText "secret"
 $clientApi = Set-IdentityClient -ClientId "client" -AllowedScopes @($api1.Name,$openid.Name,$profile.Name) -ClientSecrets $secret -AllowedGrantTypes client_credentials
 
 $mvcClient = @{
