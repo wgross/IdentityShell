@@ -1,6 +1,5 @@
 ﻿using IdentityModel.Client;
-using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
 using System.Management.Automation;
@@ -23,16 +22,23 @@ namespace IdentityShell.Commands.Endpoints
 
         protected string GetDiscoveryEndpoint()
         {
-            var serverAddressFeature = this.LocalServiceProvider.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>();
-            var firstAddress = serverAddressFeature.Addresses.FirstOrDefault();
+            var config = this.LocalServiceProvider.GetRequiredService<IConfiguration>();
+
+            var firstAddress = config["Urls"];
+
             if (firstAddress is null)
             {
                 throw new PSInvalidOperationException("Discovery endpoint couldn't be determined");
             }
-            else
+
+            firstAddress = firstAddress.Split(";").FirstOrDefault();
+
+            if (string.IsNullOrEmpty(firstAddress))
             {
-                return $"{firstAddress}/.well-known/openid-configuration";
+                throw new PSInvalidOperationException($"Discovery endpoint couldn't be determined from '{config["Urls"]}'");
             }
+
+            return $"{firstAddress}/.well-known/openid-configuration";
         }
 
         protected DiscoveryDocumentResponse DiscoveryDocument
