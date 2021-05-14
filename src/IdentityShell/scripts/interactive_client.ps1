@@ -41,7 +41,7 @@ $alice = @{
             country = "Germany"
         } | ConvertTo-Json)
     )                      
-}
+} 
 
 Set-TestUser @alice
 

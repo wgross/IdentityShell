@@ -4,47 +4,40 @@
 using Duende.IdentityServer;
 using IdentityServerHost.Quickstart.UI;
 using IdentityShell.Configuration;
-using IdentityShell.Hosting;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
+using System;
 
 namespace IdentityShell
 {
     public class Startup
     {
         public IWebHostEnvironment Environment { get; }
+
         public IConfiguration Configuration { get; }
 
-        public Startup(IWebHostEnvironment environment, IConfiguration configuration)
+        public IServiceProvider PowershellServiceProvider { get; }
+
+        public Startup(IWebHostEnvironment environment, IConfiguration configuration, IServiceProvider powershellServiceProvider)
         {
-            Environment = environment;
-            Configuration = configuration;
+            this.Environment = environment;
+            this.Configuration = configuration;
+            this.PowershellServiceProvider = powershellServiceProvider;
         }
 
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
 
-            // configure options for Commandline parameters
-            services.Configure<CommandLineOptions>(this.Configuration);
-
             // read UI from embedded resources
             var embeddedResources = new ManifestEmbeddedFileProvider(typeof(Program).Assembly, "wwwroot");
             this.Environment.WebRootFileProvider = embeddedResources;
             services.AddSingleton<IFileProvider>(embeddedResources);
-
-            // Add repos for inmemory config access
-            IdentityServerInMemoryConfig inMemoryConfig = new();
-            services.AddSingleton(inMemoryConfig);
-            services.AddScoped<IIdentityResourceRepository, IdentityResourceRepository>();
-            services.AddScoped<IApiResourceRepository, ApiResourceRepository>();
-            services.AddScoped<IApiScopeRepository, ApiScopeRepository>();
-            services.AddScoped<IClientRepository, ClientRepository>();
-            services.AddScoped<ITestUserRepository, TestUserRepository>();
 
             var builder = services.AddIdentityServer(options =>
             {
@@ -58,6 +51,7 @@ namespace IdentityShell
             }).AddTestUsers(TestUsers.Users);
 
             // in-memory, code config
+            var inMemoryConfig = this.PowershellServiceProvider.GetRequiredService<IdentityServerInMemoryConfig>();
 
             builder.AddInMemoryIdentityResources(inMemoryConfig.IdentityResources);
             builder.AddInMemoryApiScopes(inMemoryConfig.ApiScopes);
@@ -94,6 +88,12 @@ namespace IdentityShell
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapDefaultControllerRoute();
+
+                if (Environment.IsDevelopment())
+                {
+                    endpoints.MapGet("/debug-config", ctx
+                        => ctx.Response.WriteAsync((Configuration as IConfigurationRoot).GetDebugView()));
+                }
             });
         }
     }

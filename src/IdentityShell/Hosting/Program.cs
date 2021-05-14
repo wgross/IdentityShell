@@ -2,7 +2,9 @@
 using IdentityShell.Commands.Common;
 using IdentityShell.Commands.Configuration;
 using IdentityShell.Commands.Endpoints;
-using Microsoft.AspNetCore.Hosting;
+using IdentityShell.Configuration;
+using IdentityShell.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.PowerShell;
 using Serilog;
@@ -14,12 +16,15 @@ using System.CommandLine.Invocation;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace IdentityShell
 {
     public class Program
     {
+        public static IHost PowershellHost { get; private set; }
+
         public static int Main(string[] args)
         {
             Log.Logger = new LoggerConfiguration()
@@ -31,6 +36,27 @@ namespace IdentityShell
                 .Enrich.FromLogContext()
                 .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}", theme: AnsiConsoleTheme.Code)
                 .CreateLogger();
+
+            PowershellHost = Host
+                .CreateDefaultBuilder(args)
+                .ConfigureServices(services =>
+                {
+                    // the backing config for the repositories is shared
+                    services.AddSingleton(new IdentityServerInMemoryConfig());
+                    // scope is the powershell pipeline
+                    services.AddScoped<IIdentityResourceRepository, IdentityResourceRepository>();
+                    services.AddScoped<IApiResourceRepository, ApiResourceRepository>();
+                    services.AddScoped<IApiScopeRepository, ApiScopeRepository>();
+                    services.AddScoped<IClientRepository, ClientRepository>();
+                    services.AddScoped<ITestUserRepository, TestUserRepository>();
+
+                    services.AddHostedService<IdentityServerHostingService>();
+                })
+                .UseSerilog()
+                .Build();
+
+            // share the servies with the cmdlets
+            IdentityCommandBase.GlobalServiceProvider = PowershellHost.Services;
 
             RootCommand rootCommand = new();
             rootCommand.Add(new Option<bool>(new[] { "--non-interactive", "-ni" }, "Start without an interactive shell "));
@@ -50,49 +76,38 @@ namespace IdentityShell
             }
             finally
             {
+                PowershellHost.Dispose();
                 Log.CloseAndFlush();
             }
         }
 
         private static async Task StartIdentityShell(bool nonInteractive, string[] runScript, string[] args)
         {
-            using var webHost = await StartWebHost(args);
+            var stopConsole = new CancellationTokenSource();
 
-            // share service provider with identity commands
-            IdentityCommandBase.GlobalServiceProvider = webHost.Services;
+            await PowershellHost.StartAsync().ConfigureAwait(false);
 
             if (nonInteractive)
             {
                 StartNonInteractiveShell(runScript.ToArray());
+
+                // Identity Server host is shutting down already on Ctrl+C, do the same here
+                Console.CancelKeyPress += (sender, e) => PowershellHost.StopAsync().ConfigureAwait(false);
+
+                await PowershellHost.WaitForShutdownAsync().ConfigureAwait(false);
             }
             else
             {
                 StartInteractiveShell(runScript.ToArray());
 
-                await webHost.StopAsync();
+                await PowershellHost.StopAsync().ConfigureAwait(false);
             }
-
-            await webHost.WaitForShutdownAsync();
         }
 
-        private async static Task<IHost> StartWebHost(string[] args)
+        private static void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
         {
-            Log.Information("Starting identity server...");
-
-            var host = CreateHostBuilder(args).Build();
-
-            await host.StartAsync();
-
-            return host;
+            throw new NotImplementedException();
         }
-
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-        Host.CreateDefaultBuilder(args)
-            .UseSerilog()
-            .ConfigureWebHostDefaults(webBuilder =>
-            {
-                webBuilder.UseStartup<Startup>();
-            });
 
         private static void StartNonInteractiveShell(string[] startupScripts)
         {
