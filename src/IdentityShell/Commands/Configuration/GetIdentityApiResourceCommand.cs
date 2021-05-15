@@ -1,4 +1,5 @@
 ﻿using Duende.IdentityServer.Models;
+using IdentityShell.Commands.Configuration.ArgumentCompleters;
 using IdentityShell.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
@@ -11,7 +12,8 @@ namespace IdentityShell.Commands
     [OutputType(typeof(ApiResource))]
     public class GetIdentityApiResourceCommand : IdentityCommandBase
     {
-        [Parameter(ParameterSetName = "byname")]
+        [Parameter(ParameterSetName = "byname", Position = 0, ValueFromPipelineByPropertyName = true)]
+        [ArgumentCompleter(typeof(IdentityApiResourceNameCompleter))]
         [ValidateNotNullOrEmpty]
         public string Name { get; set; }
 

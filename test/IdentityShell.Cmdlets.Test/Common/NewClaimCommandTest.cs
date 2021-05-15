@@ -28,6 +28,8 @@ namespace IdentityShell.Commands.Test
                     cmd.AddParameter(c => c.Type, "type");
                     cmd.AddParameter(c => c.Value, "value");
                     cmd.AddParameter(c => c.ValueType, "valueType");
+                    cmd.AddParameter(c => c.Issuer, "issuer");
+                    cmd.AddParameter(c => c.OriginalIssuer, "originalissuer");
                 });
 
             var result = this.PowerShell.Invoke().Single();
@@ -37,6 +39,8 @@ namespace IdentityShell.Commands.Test
             Assert.Equal("type", result.Property<string>("Type"));
             Assert.Equal("value", result.Property<string>("Value"));
             Assert.Equal("valueType", result.Property<string>("ValueType"));
+            Assert.Equal("issuer", result.Property<string>("Issuer"));
+            Assert.Equal("originalissuer", result.Property<string>("OriginalIssuer"));
         }
 
         [Fact]

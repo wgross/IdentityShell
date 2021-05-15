@@ -1,5 +1,6 @@
 ﻿using Duende.IdentityServer.Models;
 using IdentityShell.Commands.Configuration;
+using IdentityShell.Commands.Configuration.ArgumentCompleters;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -191,6 +192,23 @@ namespace IdentityShell.Commands.Test.Configuration
         //    this.PowerShell.Commands.Clear();
 
         //    Assert.Empty(this.PowerShell.AddCommandEx<GetIdentityApiResourceCommand>().Invoke().ToArray());
+        //}
+
+        //[Fact]
+        //public void ApiResourceNameCompleter_completes_prefix()
+        //{
+        //    // ARRANGE
+        //    var apiSecretExpiration = DateTime.Now;
+
+        //    this.ArrangeIdentityApiResource(apiSecretExpiration);
+
+        //    // ACT
+        //    var completer = new IdentityApiResourceNameCompleter();
+
+        //    var result = completer.CompleteArgument(commandName: null, parameterName: null, "na", commandAst: null, fakeBoundParameters: null);
+
+        //    // ASSERT
+        //    Assert.Equal("name", result.Single().CompletionText);
         //}
     }
 }

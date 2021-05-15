@@ -22,7 +22,7 @@ namespace IdentityShell.Commands.Test
         [Fact]
         public void NewIdentityClaimCommand_creates_new_Claim()
         {
-            // ACT
+            // ACT1
             this.PowerShell
                 .AddCommandEx<NewIdentityScopeCommand>(cmd =>
                 {

@@ -1,4 +1,5 @@
 ﻿using Duende.IdentityServer.Test;
+using IdentityShell.Commands.Configuration.ArgumentCompleters;
 using IdentityShell.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
@@ -11,7 +12,8 @@ namespace IdentityShell.Commands.Configuration
     [OutputType(typeof(TestUser))]
     public class RemoveTestUserCommand : IdentityCommandBase
     {
-        [Parameter(Mandatory = true, ValueFromPipelineByPropertyName = true)]
+        [Parameter(Mandatory = true, Position = 0, ValueFromPipelineByPropertyName = true)]
+        [ArgumentCompleter(typeof(TestUserNameCompleter))]
         public string Username { get; set; }
 
         protected override void ProcessRecord()

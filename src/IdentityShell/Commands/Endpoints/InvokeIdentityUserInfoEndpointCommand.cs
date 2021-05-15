@@ -17,7 +17,7 @@ namespace IdentityShell.Commands.Endpoints
 
         private Task<UserInfoResponse> InvokeUserInfo() => new HttpClient().GetUserInfoAsync(new UserInfoRequest
         {
-            Address = this.EndpointUrl ?? this.DiscoveryDocument.UserInfoEndpoint,
+            Address = this.AuthorityUri ?? this.DiscoveryDocument.UserInfoEndpoint,
             Token = this.Token
         });
     }

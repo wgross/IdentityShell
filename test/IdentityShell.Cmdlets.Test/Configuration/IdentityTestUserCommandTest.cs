@@ -1,6 +1,7 @@
 ﻿using Duende.IdentityServer.Test;
 using IdentityModel;
 using IdentityShell.Commands.Configuration;
+using IdentityShell.Commands.Configuration.ArgumentCompleters;
 using System;
 using System.Linq;
 using System.Management.Automation;
@@ -191,6 +192,21 @@ namespace IdentityShell.Commands.Test.Configuration
 
             this.PowerShell.Commands.Clear();
             Assert.Empty(this.PowerShell.AddCommandEx<GetTestUserCommand>().Invoke().ToArray());
+        }
+
+        [Fact]
+        public void TestUserNameCompleter_completes_prefix()
+        {
+            // ARRANGE
+            this.ArrangeTestUser();
+
+            // ACT
+            var completer = new TestUserNameCompleter();
+
+            var result = completer.CompleteArgument(commandName: null, parameterName: null, "al", commandAst: null, fakeBoundParameters: null);
+
+            // ASSERT
+            Assert.Equal("alice", result.Single().CompletionText);
         }
     }
 }

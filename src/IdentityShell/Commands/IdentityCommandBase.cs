@@ -10,7 +10,7 @@ namespace IdentityShell.Commands
 {
     public abstract class IdentityCommandBase : PSCmdlet
     {
-        public static IServiceProvider GlobalServiceProvider { protected get; set; }
+        public static IServiceProvider GlobalServiceProvider { protected internal get; set; }
 
         protected static ICollection<string> Collection(object[] items) => items.Select(i => i.ToString()).ToHashSet();
 

@@ -13,7 +13,8 @@ namespace IdentityShell.Commands.Endpoints
         private DiscoveryDocumentResponse discoveryDocument;
 
         [Parameter()]
-        public string EndpointUrl { get; set; } = null;
+        [ArgumentCompleter(typeof(AuthorityUrlCompleter))]
+        public string AuthorityUri { get; set; } = null;
 
         protected string DiscoveryEndpoint
         {
@@ -24,26 +25,31 @@ namespace IdentityShell.Commands.Endpoints
         {
             var config = this.LocalServiceProvider.GetRequiredService<IConfiguration>();
 
-            var firstAddress = config["Urls"];
-
-            if (firstAddress is null)
+            if (string.IsNullOrEmpty(this.AuthorityUri))
             {
-                throw new PSInvalidOperationException("Discovery endpoint couldn't be determined");
+                this.AuthorityUri = config["Urls"]?.Split(";")?.FirstOrDefault();
             }
 
-            firstAddress = firstAddress.Split(";").FirstOrDefault();
+            if (string.IsNullOrEmpty(this.AuthorityUri))
+            {
+                throw new PSInvalidOperationException("Discovery endpoint is nether specified nor configured");
+            }
 
-            if (string.IsNullOrEmpty(firstAddress))
+            if (string.IsNullOrEmpty(this.AuthorityUri))
             {
                 throw new PSInvalidOperationException($"Discovery endpoint couldn't be determined from '{config["Urls"]}'");
             }
 
-            return $"{firstAddress}/.well-known/openid-configuration";
+            var metadataEndpoint = $"{this.AuthorityUri }/.well-known/openid-configuration";
+
+            this.WriteVerbose($"Using metdata endpoint: '{metadataEndpoint}'");
+
+            return metadataEndpoint;
         }
 
         protected DiscoveryDocumentResponse DiscoveryDocument
         {
-            get => this.discoveryDocument ??= Await(new HttpClient().GetDiscoveryDocumentAsync(address: this.EndpointUrl ?? this.DiscoveryEndpoint));
+            get => this.discoveryDocument ??= Await(new HttpClient().GetDiscoveryDocumentAsync(address: this.AuthorityUri ?? this.DiscoveryEndpoint));
         }
     }
 }

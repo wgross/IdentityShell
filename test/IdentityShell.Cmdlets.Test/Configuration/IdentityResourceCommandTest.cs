@@ -1,5 +1,6 @@
 ﻿using Duende.IdentityServer.Models;
 using IdentityShell.Commands.Configuration;
+using IdentityShell.Commands.Configuration.ArgumentCompleters;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -208,6 +209,21 @@ namespace IdentityShell.Commands.Test.Configuration
             Assert.Equal(r.Required, result.Property<bool>("Required"));
             Assert.Equal(r.ShowInDiscoveryDocument, result.Property<bool>("ShowInDiscoveryDocument"));
             Assert.Equal(r.UserClaims, result.Property<ICollection<string>>("UserClaims"));
+        }
+
+        [Fact]
+        public void ClientIdNameCompleter_completes_prefix()
+        {
+            // ARRANGE
+            this.ArrangeIdentityResource();
+
+            // ACT
+            var completer = new IdentityResourceNameCompleter();
+
+            var result = completer.CompleteArgument(commandName: null, parameterName: null, "na", commandAst: null, fakeBoundParameters: null);
+
+            // ASSERT
+            Assert.Equal("name", result.Single().CompletionText);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Duende.IdentityServer.Models;
+using IdentityShell.Commands.Configuration.ArgumentCompleters;
 using IdentityShell.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
@@ -11,7 +12,9 @@ namespace IdentityShell.Commands.Configuration
     [OutputType(typeof(Client))]
     public sealed class GetIdentityClientCommand : IdentityCommandBase
     {
-        [Parameter(ParameterSetName = "byname")]
+        [Parameter(ParameterSetName = "byname", Position = 0, ValueFromPipelineByPropertyName = true)]
+        [ArgumentCompleter(typeof(IdentityClientIdCompleter))]
+        [ValidateNotNullOrEmpty()]
         public string ClientId { get; set; }
 
         protected override void ProcessRecord()

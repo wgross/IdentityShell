@@ -1,4 +1,5 @@
 ﻿using Duende.IdentityServer.Models;
+using IdentityShell.Commands.Configuration.ArgumentCompleters;
 using IdentityShell.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections;
@@ -12,7 +13,8 @@ namespace IdentityShell.Commands.Configuration
     [OutputType(typeof(IdentityResource))]
     public class SetIdentityApiResourceCommand : IdentityCommandBase
     {
-        [Parameter(Mandatory = true, ValueFromPipelineByPropertyName = true)]
+        [Parameter(Mandatory = true, Position = 0, ValueFromPipelineByPropertyName = true)]
+        [ArgumentCompleter(typeof(IdentityApiResourceNameCompleter))]
         public string Name { get; set; }
 
         [Parameter(ValueFromPipeline = true)]
@@ -44,9 +46,9 @@ namespace IdentityShell.Commands.Configuration
             var apiResource = this.InputObject;
 
             var existingApiResource = this.LocalServiceProvider
-                    .GetRequiredService<IApiResourceRepository>()
-                    .Query(c => c.Name == this.Name)
-                    .FirstOrDefault();
+                .GetRequiredService<IApiResourceRepository>()
+                .Query(c => c.Name == this.Name)
+                .FirstOrDefault();
 
             if (apiResource is null && existingApiResource is null)
             {

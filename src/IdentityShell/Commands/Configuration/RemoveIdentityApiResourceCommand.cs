@@ -1,4 +1,5 @@
-﻿using IdentityShell.Configuration;
+﻿using IdentityShell.Commands.Configuration.ArgumentCompleters;
+using IdentityShell.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
 using System.Management.Automation;
@@ -8,7 +9,8 @@ namespace IdentityShell.Commands.Configuration
     [Cmdlet(VerbsCommon.Remove, "IdentityApiResource")]
     public class RemoveIdentityApiResourceCommand : IdentityCommandBase
     {
-        [Parameter(Mandatory = true, ValueFromPipelineByPropertyName = true)]
+        [Parameter(Mandatory = true, Position = 0, ValueFromPipelineByPropertyName = true)]
+        [ArgumentCompleter(typeof(IdentityApiResourceNameCompleter))]
         public string Name { get; set; }
 
         protected override void ProcessRecord()

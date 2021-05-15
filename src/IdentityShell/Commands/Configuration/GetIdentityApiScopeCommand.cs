@@ -1,4 +1,5 @@
-﻿using IdentityShell.Configuration;
+﻿using IdentityShell.Commands.Configuration.ArgumentCompleters;
+using IdentityShell.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
 using System.Management.Automation;
@@ -9,8 +10,9 @@ namespace IdentityShell.Commands.Configuration
     [CmdletBinding(DefaultParameterSetName = "all")]
     public sealed class GetIdentityApiScopeCommand : IdentityCommandBase
     {
-        [Parameter(ValueFromPipelineByPropertyName = true, ParameterSetName = "byname")]
+        [Parameter(ParameterSetName = "byname", Position = 0, ValueFromPipelineByPropertyName = true)]
         [ValidateNotNullOrEmpty]
+        [ArgumentCompleter(typeof(IdentityApiScopeNameCompleter))]
         public string Name { get; set; }
 
         protected override void ProcessRecord()

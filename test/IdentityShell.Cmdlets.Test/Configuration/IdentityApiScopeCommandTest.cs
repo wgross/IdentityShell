@@ -1,5 +1,6 @@
 ﻿using Duende.IdentityServer.Models;
 using IdentityShell.Commands.Configuration;
+using IdentityShell.Commands.Configuration.ArgumentCompleters;
 using System.Collections;
 using System.Linq;
 using System.Management.Automation;
@@ -100,6 +101,21 @@ namespace IdentityShell.Commands.Test.Configuration
             var readApiScopes = this.PowerShell.AddCommandEx<GetIdentityApiScopeCommand>().Invoke().ToArray();
 
             Assert.Empty(readApiScopes);
+        }
+
+        [Fact]
+        public void ApiScopeNameCompleter_completes_prefix()
+        {
+            // ARRANGE
+            this.ArrangeApiScope();
+
+            // ACT
+            var completer = new IdentityApiScopeNameCompleter();
+
+            var result = completer.CompleteArgument(commandName: null, parameterName: null, "na", commandAst: null, fakeBoundParameters: null);
+
+            // ASSERT
+            Assert.Equal("name", result.Single().CompletionText);
         }
     }
 }

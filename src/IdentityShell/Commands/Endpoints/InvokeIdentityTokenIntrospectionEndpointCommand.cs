@@ -1,5 +1,4 @@
 ﻿using IdentityModel.Client;
-using IdentityShell.Commands.Endpoints;
 using System.Management.Automation;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -25,7 +24,7 @@ namespace IdentityShell.Commands.Endpoints
         {
             return await new HttpClient().IntrospectTokenAsync(new TokenIntrospectionRequest
             {
-                Address = this.EndpointUrl ?? this.DiscoveryDocument.IntrospectionEndpoint,
+                Address = this.AuthorityUri ?? this.DiscoveryDocument.IntrospectionEndpoint,
                 Token = this.Token,
                 ClientId = this.ApiResource,
                 ClientSecret = this.ApiSecret

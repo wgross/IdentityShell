@@ -1,4 +1,5 @@
 ﻿using Duende.IdentityServer.Models;
+using IdentityShell.Commands.Configuration.ArgumentCompleters;
 using IdentityShell.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections;
@@ -12,7 +13,8 @@ namespace IdentityShell.Commands.Configuration
     [OutputType(typeof(IdentityResource))]
     public class SetIdentityResourceCommand : IdentityCommandBase
     {
-        [Parameter(Mandatory = true, ValueFromPipelineByPropertyName = true)]
+        [Parameter(Mandatory = true, Position = 0, ValueFromPipelineByPropertyName = true)]
+        [ArgumentCompleter(typeof(IdentityResourceNameCompleter))]
         public string Name { get; set; }
 
         [Parameter(ValueFromPipeline = true)]

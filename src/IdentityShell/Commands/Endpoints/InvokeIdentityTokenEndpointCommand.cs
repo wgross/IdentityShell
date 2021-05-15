@@ -1,4 +1,5 @@
 ﻿using IdentityModel.Client;
+using IdentityShell.Commands.Configuration.ArgumentCompleters;
 using System.Management.Automation;
 using System.Net.Http;
 
@@ -9,29 +10,42 @@ namespace IdentityShell.Commands.Endpoints
     [OutputType(typeof(TokenResponse))]
     public sealed class InvokeIdentityTokenEndpointCommand : InvokeIdentityEndpointCommandBase
     {
+        #region Client Credentials
+
         [Parameter(ParameterSetName = "clientcredentials", Mandatory = true)]
         [Parameter(ParameterSetName = "password")]
+        [ArgumentCompleter(typeof(IdentityClientIdCompleter))]
         public string ClientId { get; set; }
 
         [Parameter(ParameterSetName = "clientcredentials", Mandatory = true)]
         [Parameter(ParameterSetName = "password")]
         public string ClientSecret { get; set; }
 
-        [Parameter(ParameterSetName = "clientcredentials", Mandatory = true)]
-        [Parameter(ParameterSetName = "password", Mandatory = true)]
-        public string[] Scopes { get; set; }
+        #endregion Client Credentials
 
-        #region Password Authorization
+        [Parameter(
+            ParameterSetName = "clientcredentials",
+            Mandatory = true,
+            HelpMessage = "Defines the scopes to access. Default is openid,profile")]
+        [Parameter(
+            ParameterSetName = "password",
+            Mandatory = true,
+            HelpMessage = "Defines the scopes to access. Default is openid,profile")]
+        [ArgumentCompleter(typeof(IdentityApiScopeNameCompleter))]
+        public string[] Scopes { get; set; } = new[] { "openid", "profile" };
+
+        #region User Credentials
 
         [Parameter(ParameterSetName = "password", Mandatory = true)]
+        [ArgumentCompleter(typeof(TestUserNameCompleter))]
         public string UserName { get; set; }
 
         [Parameter(ParameterSetName = "password")]
         public string Password { get; set; }
 
-        #endregion Password Authorization
+        #endregion User Credentials
 
-        [Parameter()]
+        [Parameter(HelpMessage = "Optional variable name to store the aquired token in")]
         public string TokenVariableName { get; set; }
 
         protected override void ProcessRecord()
@@ -40,7 +54,7 @@ namespace IdentityShell.Commands.Endpoints
             {
                 var tokenRequest = new ClientCredentialsTokenRequest
                 {
-                    Address = this.EndpointUrl ?? this.DiscoveryDocument.TokenEndpoint,
+                    Address = this.AuthorityUri ?? this.DiscoveryDocument.TokenEndpoint,
                     ClientId = this.ClientId,
                     ClientSecret = this.ClientSecret,
                     Scope = string.Join(" ", this.Scopes)
@@ -52,7 +66,7 @@ namespace IdentityShell.Commands.Endpoints
             {
                 var tokenRequest = new PasswordTokenRequest
                 {
-                    Address = this.EndpointUrl ?? this.DiscoveryDocument.TokenEndpoint,
+                    Address = this.AuthorityUri ?? this.DiscoveryDocument.TokenEndpoint,
                     ClientId = this.ClientId,
                     ClientSecret = this.ClientSecret,
                     UserName = this.UserName,

@@ -8,6 +8,6 @@ namespace IdentityShell.Commands.Endpoints
     [OutputType(typeof(DiscoveryDocumentResponse))]
     public sealed class InvokeIdentityDiscoveryEndpointCommand : InvokeIdentityEndpointCommandBase
     {
-        protected override void ProcessRecord() => this.WriteObject(Await(new HttpClient().GetDiscoveryDocumentAsync(address: this.EndpointUrl ?? this.DiscoveryEndpoint)));
+        protected override void ProcessRecord() => this.WriteObject(Await(new HttpClient().GetDiscoveryDocumentAsync(address: this.AuthorityUri ?? this.DiscoveryEndpoint)));
     }
 }

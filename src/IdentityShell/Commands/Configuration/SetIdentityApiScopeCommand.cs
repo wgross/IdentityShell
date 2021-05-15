@@ -1,4 +1,5 @@
 ﻿using Duende.IdentityServer.Models;
+using IdentityShell.Commands.Configuration.ArgumentCompleters;
 using IdentityShell.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections;
@@ -14,7 +15,8 @@ namespace IdentityShell.Commands.Configuration
         [Parameter(ValueFromPipeline = true)]
         public ApiScope InputObject { get; set; }
 
-        [Parameter(Mandatory = true, ValueFromPipelineByPropertyName = true)]
+        [Parameter(Mandatory = true, Position = 0, ValueFromPipelineByPropertyName = true)]
+        [ArgumentCompleter(typeof(IdentityApiScopeNameCompleter))]
         public string Name { get; set; }
 
         [Parameter()]

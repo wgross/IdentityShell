@@ -1,5 +1,6 @@
 using Duende.IdentityServer.Models;
 using IdentityShell.Commands.Configuration;
+using IdentityShell.Commands.Configuration.ArgumentCompleters;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -317,6 +318,23 @@ namespace IdentityShell.Commands.Test.Configuration
             this.PowerShell.Commands.Clear();
 
             Assert.Empty(this.PowerShell.AddCommand("Get-IdentityClient").Invoke().ToArray());
+        }
+
+        [Fact]
+        public void ClientIdNameCompleter_completes_prefix()
+        {
+            // ARRANGE
+            var clientSecretExpiration = DateTime.Now;
+
+            this.ArrangeClient(clientSecretExpiration);
+
+            // ACT
+            var completer = new IdentityClientIdCompleter();
+
+            var result = completer.CompleteArgument(commandName: null, parameterName: null, "cl", commandAst: null, fakeBoundParameters: null);
+
+            // ASSERT
+            Assert.Equal("client-id", result.Single().CompletionText);
         }
     }
 }
