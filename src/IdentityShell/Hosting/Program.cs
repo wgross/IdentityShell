@@ -4,6 +4,7 @@ using IdentityShell.Commands.Configuration;
 using IdentityShell.Commands.Endpoints;
 using IdentityShell.Configuration;
 using IdentityShell.Hosting;
+using IdentityShell.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.PowerShell;
@@ -11,12 +12,13 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
 using System;
+using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.Parsing;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace IdentityShell
@@ -27,43 +29,11 @@ namespace IdentityShell
 
         public static int Main(string[] args)
         {
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
-                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-                .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
-                .MinimumLevel.Override("System", LogEventLevel.Warning)
-                .MinimumLevel.Override("Microsoft.AspNetCore.Authentication", LogEventLevel.Information)
-                .Enrich.FromLogContext()
-                .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}", theme: AnsiConsoleTheme.Code)
-                .CreateLogger();
-
-            PowershellHost = Host
-                .CreateDefaultBuilder(args)
-                .ConfigureServices(services =>
-                {
-                    // the backing config for the repositories is shared
-                    services.AddSingleton(new IdentityServerInMemoryConfig());
-                    // scope is the powershell pipeline
-                    services.AddScoped<IIdentityResourceRepository, IdentityResourceRepository>();
-                    services.AddScoped<IApiResourceRepository, ApiResourceRepository>();
-                    services.AddScoped<IApiScopeRepository, ApiScopeRepository>();
-                    services.AddScoped<IClientRepository, ClientRepository>();
-                    services.AddScoped<ITestUserRepository, TestUserRepository>();
-
-                    services.AddHostedService<IdentityServerHostingService>();
-                })
-                .UseSerilog()
-                .Build();
+            Log.Logger = ConfigureSerilog();
 
             // share the servies with the cmdlets
-            IdentityCommandBase.GlobalServiceProvider = PowershellHost.Services;
 
-            RootCommand rootCommand = new();
-            rootCommand.Add(new Option<bool>(new[] { "--non-interactive", "-ni" }, "Start without an interactive shell "));
-            rootCommand.Add(new Option<string[]>(new[] { "--run-script", "-s" }, "Startup script(s)"));
-            rootCommand.Description = "Run openid connect server";
-            rootCommand.Handler = CommandHandler.Create<bool, string[]>(async (nonInteractive, runScript)
-                => await StartIdentityShell(nonInteractive, runScript, args));
+            RootCommand rootCommand = CreateRootCommand();
 
             try
             {
@@ -72,18 +42,50 @@ namespace IdentityShell
             catch (Exception ex)
             {
                 Log.Fatal(ex, "Host terminated unexpectedly.");
+
                 return 1;
             }
             finally
             {
                 PowershellHost.Dispose();
+
                 Log.CloseAndFlush();
             }
         }
 
-        private static async Task StartIdentityShell(bool nonInteractive, string[] runScript, string[] args)
+        private static RootCommand CreateRootCommand()
         {
-            var stopConsole = new CancellationTokenSource();
+            RootCommand rootCommand = new();
+            rootCommand.Add(new Option<bool>(new[] { "--non-interactive", "-ni" }, "Start without an interactive shell "));
+            rootCommand.Add(new Option<string[]>(new[] { "--run-script", "-s" }, "Startup script(s)"));
+            rootCommand.Handler = CommandHandler.Create<bool, string[], ParseResult>(StartIdentityShell);
+            return rootCommand;
+        }
+
+        private static ILogger ConfigureSerilog()
+        {
+            var logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
+                .MinimumLevel.Override("System", LogEventLevel.Warning)
+                .MinimumLevel.Override("Microsoft.AspNetCore.Authentication", LogEventLevel.Information)
+                .Enrich.FromLogContext()
+                .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}", theme: AnsiConsoleTheme.Code)
+                .WriteTo.Observers(log => log.Subscribe(LogEventsSink))
+                .CreateLogger();
+
+            return logger;
+        }
+
+        public static LogEventsSink LogEventsSink { get; } = new LogEventsSink();
+
+        #region Start PowerShell
+
+        private static async Task StartIdentityShell(bool nonInteractive, string[] runScript, ParseResult parseResult)
+        {
+            PowershellHost = CreatePowerShellHost(parseResult.UnparsedTokens);
+            IdentityCommandBase.GlobalServiceProvider = PowershellHost.Services;
 
             await PowershellHost.StartAsync().ConfigureAwait(false);
 
@@ -104,9 +106,31 @@ namespace IdentityShell
             }
         }
 
-        private static void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
+        private static IHost CreatePowerShellHost(IReadOnlyList<string> args)
         {
-            throw new NotImplementedException();
+            return Host
+                .CreateDefaultBuilder(args.ToArray())
+                .ConfigureServices(services =>
+                {
+                    // add log events sink for later retrieval
+                    // services.AddSingleton(LogEventsSink);
+
+                    // the backing config for the repositories is shared
+                    services.AddSingleton(new IdentityServerInMemoryConfig());
+
+                    // scope is the powershell pipeline
+                    services.AddScoped<IIdentityResourceRepository, IdentityResourceRepository>();
+                    services.AddScoped<IApiResourceRepository, ApiResourceRepository>();
+                    services.AddScoped<IApiScopeRepository, ApiScopeRepository>();
+                    services.AddScoped<IClientRepository, ClientRepository>();
+                    services.AddScoped<ITestUserRepository, TestUserRepository>();
+
+                    // runs the web service
+                    services.AddHostedService<IdentityServerHostingService>();
+                })
+                .UseSerilog()
+                .UseConsoleLifetime()
+                .Build();
         }
 
         private static void StartNonInteractiveShell(string[] startupScripts)
@@ -162,5 +186,7 @@ namespace IdentityShell
 
             return sessionState;
         }
+
+        #endregion Start PowerShell
     }
 }

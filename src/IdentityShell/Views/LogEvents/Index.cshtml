@@ -1,0 +1,89 @@
+﻿@{
+}
+
+<h2>LogEvents</h2>
+<script type="text/javascript">
+    function clear() {
+        $("#targetDiv").children().remove();
+    }
+</script>
+
+
+
+<style>
+    .fatal {
+        color: red
+    }
+
+    .error {
+        color: orangered
+    }
+
+    .warning {
+        color: orange
+    }
+
+    .info {
+        color: black
+    }
+
+    .debug {
+        color: gray
+    }
+
+    .verbose {
+        color: lightgray
+    }
+</style>
+
+<form>
+    <button onclick="javascript:clear()">clear log events</button>
+    <div id="targetDiv" class="ticker"></div>
+</form>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        var source = new EventSource('/logevents/data');
+
+        source.onopen = function (event) {
+            console.log("log event stream started")
+        };
+
+        source.onclose = function (event) {
+            console.log("log event stream closed")
+        };
+
+        source.onerror = function (event) {
+            if (event.eventPhase == EventSource.CLOSED) {
+                $('#footerDiv').append
+                    ('<h1>Connection Closed!</h1>');
+                source.close();
+            }
+        };
+
+        source.onmessage = function (event) {
+            var data = JSON.parse(event.data);
+            switch (data.level) {
+                case 5:
+                    $("#targetDiv").append(`<div class='fatal'> fatal: ${data.msg} </div >`);
+                    break;
+                case 4:
+                    $("#targetDiv").append(`<div class='error'> error: ${data.msg} </div >`);
+                    break;
+                case 3:
+                    $("#targetDiv").append(`<div class='warning'> warning: ${data.msg} </div >`);
+                    break;
+                case 2:
+                    $("#targetDiv").append(`<div class='info'> info: ${data.msg} </div >`);
+                    break;
+                case 1:
+                    $("#targetDiv").append(`<div class='debug'> debug: ${data.msg} </div >`);
+                    break;
+                case 0:
+                    $("#targetDiv").append(`<div class='verbose'> verbose: ${data.msg} </div >`);
+                    break;
+            }
+        };
+    });
+</script>

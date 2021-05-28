@@ -15,7 +15,7 @@ using System;
 
 namespace IdentityShell
 {
-    public class Startup
+    public class IdentityServerStartup
     {
         public IWebHostEnvironment Environment { get; }
 
@@ -23,7 +23,7 @@ namespace IdentityShell
 
         public IServiceProvider PowershellServiceProvider { get; }
 
-        public Startup(IWebHostEnvironment environment, IConfiguration configuration, IServiceProvider powershellServiceProvider)
+        public IdentityServerStartup(IWebHostEnvironment environment, IConfiguration configuration, IServiceProvider powershellServiceProvider)
         {
             this.Environment = environment;
             this.Configuration = configuration;
@@ -39,16 +39,18 @@ namespace IdentityShell
             this.Environment.WebRootFileProvider = embeddedResources;
             services.AddSingleton<IFileProvider>(embeddedResources);
 
-            var builder = services.AddIdentityServer(options =>
-            {
-                options.Events.RaiseErrorEvents = true;
-                options.Events.RaiseInformationEvents = true;
-                options.Events.RaiseFailureEvents = true;
-                options.Events.RaiseSuccessEvents = true;
+            var builder = services
+                .AddIdentityServer(options =>
+                {
+                    options.Events.RaiseErrorEvents = true;
+                    options.Events.RaiseInformationEvents = true;
+                    options.Events.RaiseFailureEvents = true;
+                    options.Events.RaiseSuccessEvents = true;
 
-                // see https://docs.duendesoftware.com/identityserver/v5/fundamentals/resources/
-                options.EmitStaticAudienceClaim = true;
-            }).AddTestUsers(TestUsers.Users);
+                    // see https://docs.duendesoftware.com/identityserver/v5/fundamentals/resources/
+                    options.EmitStaticAudienceClaim = true;
+                })
+                .AddTestUsers(TestUsers.Users);
 
             // in-memory, code config
             var inMemoryConfig = this.PowershellServiceProvider.GetRequiredService<IdentityServerInMemoryConfig>();
@@ -58,6 +60,9 @@ namespace IdentityShell
             builder.AddInMemoryClients(inMemoryConfig.Clients);
             builder.AddInMemoryApiResources(inMemoryConfig.ApiResources);
             builder.AddTestUsers(inMemoryConfig.TestUsers);
+
+            // make observable logging events available in the web host
+            // services.AddSingleton(this.PowershellServiceProvider.GetRequiredService<IObservable<LogEvent>>());
 
             services
                 .AddAuthentication()

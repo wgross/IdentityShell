@@ -43,7 +43,7 @@ $alice = @{
     )                      
 } 
 
-Set-TestUser @alice
+$alice = Set-TestUser @alice
 
 $bob = @{
     SubjectId = "88421113"
@@ -65,4 +65,4 @@ $bob = @{
     )                      
 }
 
-Set-TestUser @bob
+$bob = Set-TestUser @bob

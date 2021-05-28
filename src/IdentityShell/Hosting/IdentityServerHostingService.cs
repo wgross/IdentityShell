@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Serilog;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,9 +37,11 @@ namespace IdentityShell.Hosting
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseStartup(ctx => new Startup(ctx.HostingEnvironment, this.powershellHostConfiguration, this.powershellServiceProvider));
+                    webBuilder.UseStartup(ctx => new IdentityServerStartup(ctx.HostingEnvironment, this.powershellHostConfiguration, this.powershellServiceProvider));
                 })
+                .UseSerilog()
                 .Build();
+
             await identityServerHost.RunAsync(stoppingToken);
         }
     }
